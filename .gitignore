@@ -1,0 +1,20 @@
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor folders
+.vscode/
+.idea/
+
+# LÖVE Build Outputs / Archives
+*.love
+*.exe
+*.app
+*.zip
+*.tar.gz
+
+# Logs & temp files
+*.log
+*.tmp
+*.temp
