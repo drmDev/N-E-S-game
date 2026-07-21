@@ -1,9 +1,5 @@
 local title = {}
-
--- Fixed virtual target dimensions (must match main.lua / push setup)
-local VIRTUAL_WIDTH = 640
-local VIRTUAL_HEIGHT = 360
-
+local constants = require("constants")
 -- Title-specific UI states insulated to this module
 -- Button scales adjusted down from 5 to 2 to fit 640x360 virtual resolution
 local titleButtons = {
@@ -43,8 +39,8 @@ function title.load()
     totalTitleWidth = totalTitleWidth + (padding * (#titleButtons - 1))
 
     -- Phase 3: Compute fixed virtual coordinates (640x360 grid)
-    local startX = (VIRTUAL_WIDTH - totalTitleWidth) / 2
-    local startY = VIRTUAL_HEIGHT * 0.55 -- Positioned slightly below mid-screen
+    local startX = (constants.VIRTUAL_WIDTH - totalTitleWidth) / 2
+    local startY = constants.VIRTUAL_HEIGHT * 0.55 -- Positioned slightly below mid-screen
 
     for _, btn in ipairs(titleButtons) do
         btn.x = startX
@@ -60,7 +56,7 @@ function title.draw()
     love.graphics.setColor(1, 0, 0)
     local titleText = "N / E / S"
     local fontWidth = State.RF_Font:getWidth(titleText)
-    love.graphics.print(titleText, (VIRTUAL_WIDTH - fontWidth) / 2, 80)
+    love.graphics.print(titleText, (constants.VIRTUAL_WIDTH - fontWidth) / 2, 80)
     love.graphics.pop()
 
     -- 2. Draw Menu Buttons and Selection Boxes

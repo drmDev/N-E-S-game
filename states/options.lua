@@ -1,11 +1,9 @@
 local options = {}
-
--- Fixed virtual target dimensions (matches main.lua / push setup)
-local VIRTUAL_WIDTH = 640
-local VIRTUAL_HEIGHT = 360
-
+local constants = require("constants")
 local controls = require("config")
 local isRemapping = false
+local TOTAL_ITEMS = #controls + 1 -- 6 control bindings + 1 back button
+local BACK_BUTTON_INDEX = TOTAL_ITEMS
 
 -- Scaled down rewind button for 640x360 space
 local rewindBtn = { path = "assets/pngs/btnRewind.png", scale = 1.5 }
@@ -13,29 +11,39 @@ local rewindBtn = { path = "assets/pngs/btnRewind.png", scale = 1.5 }
 -- Handle navigation through the options menu
 local function navigate(direction)
     if isRemapping then return end
-    if direction == "up" then
+
+    if direction == "up" or direction == "down" then
         State.SFX_Nav:play()
-        if State.CurrentOptionsSelection == 1 then
-            State.CurrentOptionsSelection = 7
-        else
-            State.CurrentOptionsSelection = State.CurrentOptionsSelection - 1
-        end
-    elseif direction == "down" then
-        State.SFX_Nav:play()
-        if State.CurrentOptionsSelection == 7 then
-            State.CurrentOptionsSelection = 1
-        else
-            State.CurrentOptionsSelection = State.CurrentOptionsSelection + 1
-        end
+        State.CurrentOptionsSelection = options.getNewSelection(
+            State.CurrentOptionsSelection,
+            TOTAL_ITEMS,
+            direction
+        )
     elseif direction == "confirm" then
         State.SFX_Select:play()
-
-        if State.CurrentOptionsSelection == 7 then
+        if State.CurrentOptionsSelection == BACK_BUTTON_INDEX then
             State.GameState = "title"
         else
             isRemapping = true
         end
     end
+end
+
+function options.getNewSelection(current, totalItems, direction)
+    if direction == "up" then
+        current = current - 1
+        if current < 1 then
+            return totalItems
+        end
+        return current
+    elseif direction == "down" then
+        current = current + 1
+        if current > totalItems then
+            return 1
+        end
+        return current
+    end
+    return current
 end
 
 -- Load images for controls and the rewind button
@@ -59,7 +67,7 @@ function options.draw()
     local headerText = "OPTIONS"
     local headerScale = 0.45
     local fontWidth = font:getWidth(headerText) * headerScale
-    love.graphics.print(headerText, (VIRTUAL_WIDTH - fontWidth) / 2, 20, 0, headerScale, headerScale)
+    love.graphics.print(headerText, (constants.VIRTUAL_WIDTH - fontWidth) / 2, 20, 0, headerScale, headerScale)
     love.graphics.pop()
 
     -- 2. Draw Control Mapping List
@@ -106,10 +114,10 @@ function options.draw()
 
     local rwWidth = rewindBtn.img:getWidth() * rewindBtn.scale
     local rwHeight = rewindBtn.img:getHeight() * rewindBtn.scale
-    local rwX = (VIRTUAL_WIDTH - rwWidth) / 2
+    local rwX = (constants.VIRTUAL_WIDTH - rwWidth) / 2
     local rwY = startY + 5
 
-    if State.CurrentOptionsSelection == 7 then
+    if State.CurrentOptionsSelection == BACK_BUTTON_INDEX then
         love.graphics.setColor(1, 0.3, 0.3)
         love.graphics.rectangle("line", rwX - 4, rwY - 4, rwWidth + 8, rwHeight + 8)
     else

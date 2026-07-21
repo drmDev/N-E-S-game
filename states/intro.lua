@@ -1,8 +1,6 @@
 local intro = {}
-
--- Fixed virtual target dimensions
-local VIRTUAL_WIDTH = 640
-local VIRTUAL_HEIGHT = 360
+    
+local constants = require("constants")
 
 -- Main Character Assets
 local spriteSheet
@@ -145,14 +143,14 @@ function intro.draw()
     local scale = 3
 
     -- Center Player within the virtual grid
-    local charX = math.floor((VIRTUAL_WIDTH - (21 * scale)) / 2)
-    local charY = math.floor((VIRTUAL_HEIGHT - (16 * scale)) / 2)
+    local charX = math.floor((constants.VIRTUAL_WIDTH - (21 * scale)) / 2)
+    local charY = math.floor((constants.VIRTUAL_HEIGHT - (16 * scale)) / 2)
 
     -- Object offsets tightened to keep elements on screen
-    local doorX = math.floor((VIRTUAL_WIDTH - (16 * scale)) / 2)
+    local doorX = math.floor((constants.VIRTUAL_WIDTH - (16 * scale)) / 2)
     local doorY = charY + 110
 
-    local windowX = math.floor((VIRTUAL_WIDTH - (16 * scale)) / 2)
+    local windowX = math.floor((constants.VIRTUAL_WIDTH - (16 * scale)) / 2)
     local windowY = charY - 110
 
     local tvX = charX + 160

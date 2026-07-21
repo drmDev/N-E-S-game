@@ -13,9 +13,10 @@ local optionsScreen = require ("states.options")
 local titleScreen = require("states.title")
 local introScreen = require("states.intro")
 local push = require("lib.push")
+local constants = require("constants")
 
 -- Virtual dimensions your game logic targets
-local VIRTUAL_WIDTH, VIRTUAL_HEIGHT = 640, 360
+local VIRTUAL_WIDTH, VIRTUAL_HEIGHT = constants.VIRTUAL_WIDTH, constants.VIRTUAL_HEIGHT
 -- Default window startup dimensions
 local WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 
