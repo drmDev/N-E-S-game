@@ -13,28 +13,6 @@ local titleButtons = {
 }
 local currentTitleSelection = 1
 
--- Navigation with wrapping handling
-local function navigate(direction)
-    if direction == "left" then
-        State.SFX_Nav:play()
-        currentTitleSelection = currentTitleSelection - 1
-        if currentTitleSelection < 1 then
-            currentTitleSelection = #titleButtons
-        end
-
-    elseif direction == "right" then
-        State.SFX_Nav:play()
-        currentTitleSelection = currentTitleSelection + 1
-        if currentTitleSelection > #titleButtons then
-            currentTitleSelection = 1
-        end
-
-    elseif direction == "confirm" then
-        State.SFX_Select:play()
-        titleButtons[currentTitleSelection].action()
-    end
-end
-
 -- Load assets and calculate positions ONCE using fixed virtual coordinates
 function title.load()
     -- Map menu item confirmations to actions
@@ -99,6 +77,37 @@ function title.draw()
         love.graphics.draw(btn.img, btn.x, btn.y, 0, btn.scale, btn.scale)
         love.graphics.pop()
     end
+end
+
+-- Nav playing sounds and handling wrapping
+local function navigate(direction)
+    if direction == "left" or direction == "right" then
+        State.SFX_Nav:play()
+        currentTitleSelection = title.getNewSelection(currentTitleSelection, #titleButtons, direction)
+
+    elseif direction == "confirm" then
+        State.SFX_Select:play()
+        titleButtons[currentTitleSelection].action()
+    end
+end
+
+function title.getNewSelection(current, totalItems, direction)
+    if direction == "left" then
+        current = current - 1
+        if current < 1 then
+            return totalItems
+        end
+        return current
+
+    elseif direction == "right" then
+        current = current + 1
+        if current > totalItems then
+            return 1
+        end
+        return current
+    end
+
+    return current
 end
 
 -- Handle key press events for the title screen
