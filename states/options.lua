@@ -1,23 +1,28 @@
--- states/options.lua
 local options = {}
+
+-- Fixed virtual target dimensions (matches main.lua / push setup)
+local VIRTUAL_WIDTH = 640
+local VIRTUAL_HEIGHT = 360
 
 local controls = require("config")
 local isRemapping = false
-local rewindBtn = { path = "assets/pngs/btnRewind.png", scale = 4 }
+
+-- Scaled down rewind button for 640x360 space
+local rewindBtn = { path = "assets/pngs/btnRewind.png", scale = 1.5 }
 
 -- Handle navigation through the options menu
 local function navigate(direction)
-    if isRemapping then return end -- prevent navigation while remapping controls
+    if isRemapping then return end
     if direction == "up" then
         State.SFX_Nav:play()
-        if State.CurrentOptionsSelection == 1 then -- wrap around to the last option when navigating up from the first option
+        if State.CurrentOptionsSelection == 1 then
             State.CurrentOptionsSelection = 7
         else
             State.CurrentOptionsSelection = State.CurrentOptionsSelection - 1
         end
     elseif direction == "down" then
         State.SFX_Nav:play()
-        if State.CurrentOptionsSelection == 7 then -- wrap around to the first option when navigating down from the last option
+        if State.CurrentOptionsSelection == 7 then
             State.CurrentOptionsSelection = 1
         else
             State.CurrentOptionsSelection = State.CurrentOptionsSelection + 1
@@ -25,7 +30,7 @@ local function navigate(direction)
     elseif direction == "confirm" then
         State.SFX_Select:play()
 
-        if State.CurrentOptionsSelection == 7 then -- if the last option (rewind/back) is selected, go back to the title screen
+        if State.CurrentOptionsSelection == 7 then
             State.GameState = "title"
         else
             isRemapping = true
@@ -44,69 +49,78 @@ function options.load()
     rewindBtn.img = love.graphics.newImage(rewindBtn.path)
 end
 
--- draw function --
+-- Draw function anchored and scaled to virtual resolution
 function options.draw()
-    local screenWidth = love.graphics.getWidth()
+    local font = State.RF_Font or love.graphics.getFont()
 
-    love.graphics.push("all") -- save the current graphics state
+    -- 1. Draw Title Header
+    love.graphics.push("all")
     love.graphics.setColor(1, 0, 0)
-    love.graphics.print("OPTIONS", (screenWidth - love.graphics.getFont():getWidth("OPTIONS")) / 2, 100)
-    love.graphics.pop() -- restore the previous graphics state
+    local headerText = "OPTIONS"
+    local headerScale = 0.45
+    local fontWidth = font:getWidth(headerText) * headerScale
+    love.graphics.print(headerText, (VIRTUAL_WIDTH - fontWidth) / 2, 20, 0, headerScale, headerScale)
+    love.graphics.pop()
 
-    local startY = 250
+    -- 2. Draw Control Mapping List
+    local startY = 75
+    local rowSpacing = 32
+    local iconX = 80
+    local bindingX = 240
+    local labelScale = 0.20
+    local bindScale = 0.17
 
-    -- Draw each control option in the menu
     for i, ctrl in ipairs(controls) do
         love.graphics.push("all")
 
-        if i == State.CurrentOptionsSelection and not isRemapping then -- highlight the currently selected option in red
+        if i == State.CurrentOptionsSelection and not isRemapping then
             love.graphics.setColor(1, 0.3, 0.3)
-        elseif i == State.CurrentOptionsSelection and isRemapping then -- highlight the currently selected option in yellow while remapping
+        elseif i == State.CurrentOptionsSelection and isRemapping then
             love.graphics.setColor(1, 1, 0)
-        else -- highlight the non-selected options in gray
+        else
             love.graphics.setColor(0.5, 0.5, 0.5)
         end
 
-        -- Draw the control's icon or label based on its type
+        -- Draw icon or text label
         if ctrl.type == "icon" then
-            love.graphics.draw(ctrl.img, 300, startY, 0, 3, 3)
+            love.graphics.draw(ctrl.img, iconX, startY, 0, 1.2, 1.2)
         else
-            love.graphics.print(ctrl.label, 300, startY, 0, 0.4, 0.4)
+            love.graphics.print(ctrl.label, iconX, startY, 0, labelScale, labelScale)
         end
 
-        -- Draw the key and pad bindings for the control
+        -- Prepare binding string
         local bindStr = string.format("Key: %s   |   Pad: %s", ctrl.key:upper(), ctrl.pad:upper())
-
-        -- If the control is currently being remapped, show a prompt instead of the current bindings
         if isRemapping and i == State.CurrentOptionsSelection then
             bindStr = "PRESS ANY INPUT REBIND TARGET..."
         end
 
-        -- Render the binding string for the control
-        love.graphics.print(bindStr, 550, startY + 5, 0, 0.35, 0.35)
-        love.graphics.pop() -- restore the previous graphics state for this control
+        -- Render binding string with scaled dimensions
+        love.graphics.print(bindStr, bindingX, startY + 2, 0, bindScale, bindScale)
+        love.graphics.pop()
 
-        startY = startY + 70
+        startY = startY + rowSpacing
     end
 
-    love.graphics.push("all") -- save the current graphics state
+    -- 3. Draw Rewind / Back Button
+    love.graphics.push("all")
 
-    -- Draw the rewind button and highlight it if it is currently selected
-    local rwX = (screenWidth - (rewindBtn.img:getWidth() * rewindBtn.scale)) / 2
-    local rwY = startY + 30
+    local rwWidth = rewindBtn.img:getWidth() * rewindBtn.scale
+    local rwHeight = rewindBtn.img:getHeight() * rewindBtn.scale
+    local rwX = (VIRTUAL_WIDTH - rwWidth) / 2
+    local rwY = startY + 5
 
     if State.CurrentOptionsSelection == 7 then
         love.graphics.setColor(1, 0.3, 0.3)
-        love.graphics.rectangle("line", rwX - 6, rwY - 6, (rewindBtn.img:getWidth() * rewindBtn.scale) + 12, (rewindBtn.img:getHeight() * rewindBtn.scale) + 12)
+        love.graphics.rectangle("line", rwX - 4, rwY - 4, rwWidth + 8, rwHeight + 8)
     else
         love.graphics.setColor(0.4, 0.4, 0.4)
     end
 
     love.graphics.draw(rewindBtn.img, rwX, rwY, 0, rewindBtn.scale, rewindBtn.scale)
-    love.graphics.pop() -- restore the previous graphics state for the rewind button
+    love.graphics.pop()
 end
 
--- handle key press events for the options menu --
+-- Handle key press events for the options menu
 function options.keypressed(key)
     if isRemapping then
         controls[State.CurrentOptionsSelection].key = key
@@ -124,7 +138,7 @@ function options.keypressed(key)
     end
 end
 
--- gamepad button press events for the options menu --
+-- Gamepad button press events for the options menu
 function options.gamepadpressed(_, button)
     if isRemapping then
         controls[State.CurrentOptionsSelection].pad = button

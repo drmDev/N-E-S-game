@@ -1,5 +1,8 @@
--- states/intro.lua
 local intro = {}
+
+-- Fixed virtual target dimensions
+local VIRTUAL_WIDTH = 640
+local VIRTUAL_HEIGHT = 360
 
 -- Main Character Assets
 local spriteSheet
@@ -138,23 +141,22 @@ function intro.update(dt)
 end
 
 function intro.draw()
-    local screenWidth = love.graphics.getWidth()
-    local screenHeight = love.graphics.getHeight()
-    local scale = 5
+    -- Scale reduced to 3 to comfortably fit the 640x360 canvas space
+    local scale = 3
 
-    -- Center Player
-    local charX = math.floor((screenWidth - (21 * scale)) / 2)
-    local charY = math.floor((screenHeight - (16 * scale)) / 2)
+    -- Center Player within the virtual grid
+    local charX = math.floor((VIRTUAL_WIDTH - (21 * scale)) / 2)
+    local charY = math.floor((VIRTUAL_HEIGHT - (16 * scale)) / 2)
 
-    -- Object Positions relative to room diagram
-    local doorX = math.floor((screenWidth - (16 * scale)) / 2)
-    local doorY = charY + 260
+    -- Object offsets tightened to keep elements on screen
+    local doorX = math.floor((VIRTUAL_WIDTH - (16 * scale)) / 2)
+    local doorY = charY + 110
 
-    local windowX = math.floor((screenWidth - (16 * scale)) / 2)
-    local windowY = charY - 260
+    local windowX = math.floor((VIRTUAL_WIDTH - (16 * scale)) / 2)
+    local windowY = charY - 110
 
-    local tvX = charX + 300
-    local tvY = math.floor((screenHeight - (16 * scale)) / 2)
+    local tvX = charX + 160
+    local tvY = charY
 
     love.graphics.push("all")
     love.graphics.setColor(1, 1, 1)
@@ -168,17 +170,19 @@ function intro.draw()
     love.graphics.draw(spriteSheet, quads[currentFrame], charX, charY, 0, scale, scale)
     love.graphics.pop()
 
-    -- 3. Draw Dialogue Box
-    local boxW, boxH = 310, 50
+    -- 3. Draw Dialogue Box (scaled and positioned for 640x360 space)
+    local boxW, boxH = 220, 30
     local boxX = math.floor(charX + ((21 * scale) / 2) - (boxW / 2)) -- Centered over sprite
-    local boxY = charY - boxH - 20                                    -- Hovering just above head
+    local boxY = charY - boxH - 12                                    -- Hovering just above head
 
     love.graphics.push("all")
     love.graphics.setColor(0, 0, 0, 0.85)
     love.graphics.rectangle("fill", boxX, boxY, boxW, boxH)
     love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle("line", boxX, boxY, boxW, boxH)
-    love.graphics.print("ow... my head... where am I?", boxX + 15, boxY + 15, 0, 0.16, 0.16)
+    
+    -- Text placement slightly nudged to center within the resized dialogue box
+    love.graphics.print("ow... my head... where am I?", boxX + 10, boxY + 10, 0, 0.11, 0.11)
     love.graphics.pop()
 end
 

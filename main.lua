@@ -12,10 +12,23 @@ local rfFontPath = "assets/fonts/RasterForgeRegular-JpBgm.ttf"
 local optionsScreen = require ("states.options")
 local titleScreen = require("states.title")
 local introScreen = require("states.intro")
+local push = require("lib.push")
+
+-- Virtual dimensions your game logic targets
+local VIRTUAL_WIDTH, VIRTUAL_HEIGHT = 640, 360
+-- Default window startup dimensions
+local WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 
 -- init
 function love.load()
     love.mouse.setVisible(false)
+
+    -- Configure push canvas
+    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
+        fullscreen = false,
+        resizable = true,
+        pixelperfect = true -- Keeps pixels crisp during integer scaling
+    })
 
     State.BGM = love.audio.newSource("assets/oggs/intro.ogg", "stream")
     State.BGM:setLooping(true)
@@ -38,6 +51,11 @@ function love.load()
     introScreen.load()
 end
 
+-- Pass window resize events to push
+function love.resize(w, h)
+    push:resize(w, h)
+end
+
 -- update loop for the game states --
 function love.update(dt)
     -- Pass delta time to active screen for animations
@@ -48,6 +66,8 @@ end
 
 -- rendering --
 function love.draw()
+    push:start()
+
     if State.GameState == "title" then
         titleScreen.draw()
     elseif State.GameState == "options" then
@@ -55,6 +75,8 @@ function love.draw()
     elseif State.GameState == "intro" then
         introScreen.draw()
     end
+    
+    push:finish()
 end
 
 -- hardware event interceptors --
