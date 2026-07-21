@@ -1,4 +1,4 @@
--- title.lua
+-- states/title.lua
 local title = {}
 
 -- Title-specific UI states insulated to this module
@@ -12,6 +12,7 @@ local currentTitleSelection = 1
 -- navigation with wrapping handling
 local function navigate(direction)
     if direction == "left" then
+        State.SFX_Nav:play()
         currentTitleSelection = currentTitleSelection - 1
         -- Wrap around to the far right button if we drop below the first index
         if currentTitleSelection < 1 then
@@ -19,6 +20,7 @@ local function navigate(direction)
         end
 
     elseif direction == "right" then
+        State.SFX_Nav:play()
         currentTitleSelection = currentTitleSelection + 1
         -- Wrap around to the first button if we exceed the total button count
         if currentTitleSelection > #titleButtons then
@@ -26,6 +28,7 @@ local function navigate(direction)
         end
 
     elseif direction == "confirm" then
+        State.SFX_Select:play()
         titleButtons[currentTitleSelection].action()
     end
 end
@@ -35,7 +38,9 @@ function title.load()
     local screenWidth, screenHeight = love.graphics.getWidth(), love.graphics.getHeight()
 
     -- Map menu item confirmations to actions
-    titleButtons[1].action = function() State.DebugMessage = "Debug: Start Game Triggered!" end
+    titleButtons[1].action = function() 
+        State.GameState = "intro"
+    end
     titleButtons[2].action = function() State.GameState = "options"; State.CurrentOptionsSelection = 1 end
     titleButtons[3].action = function() love.event.quit() end
 
@@ -70,7 +75,7 @@ function title.draw()
 
     love.graphics.push("all") -- Save the current graphics state
     love.graphics.setColor(1, 0, 0)
-    love.graphics.print("N / E / S", (screenWidth - MyFont:getWidth("N / E / S")) / 2, 200) -- Center the game title horizontally
+    love.graphics.print("N / E / S", (screenWidth - State.RF_Font:getWidth("N / E / S")) / 2, 200) -- Center the game title horizontally
     love.graphics.pop()
 
     -- Draw the menu buttons and highlight with a square

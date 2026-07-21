@@ -9,18 +9,22 @@ local rewindBtn = { path = "assets/pngs/btnRewind.png", scale = 4 }
 local function navigate(direction)
     if isRemapping then return end -- prevent navigation while remapping controls
     if direction == "up" then
+        State.SFX_Nav:play()
         if State.CurrentOptionsSelection == 1 then -- wrap around to the last option when navigating up from the first option
             State.CurrentOptionsSelection = 7
         else
             State.CurrentOptionsSelection = State.CurrentOptionsSelection - 1
         end
     elseif direction == "down" then
+        State.SFX_Nav:play()
         if State.CurrentOptionsSelection == 7 then -- wrap around to the first option when navigating down from the last option
             State.CurrentOptionsSelection = 1
         else
             State.CurrentOptionsSelection = State.CurrentOptionsSelection + 1
         end
     elseif direction == "confirm" then
+        State.SFX_Select:play()
+
         if State.CurrentOptionsSelection == 7 then -- if the last option (rewind/back) is selected, go back to the title screen
             State.GameState = "title"
         else
@@ -107,7 +111,6 @@ function options.keypressed(key)
     if isRemapping then
         controls[State.CurrentOptionsSelection].key = key
         isRemapping = false
-        State.DebugMessage = "Debug: Keyboard Control Updated!"
         return
     end
 
@@ -126,7 +129,6 @@ function options.gamepadpressed(_, button)
     if isRemapping then
         controls[State.CurrentOptionsSelection].pad = button
         isRemapping = false
-        State.DebugMessage = "Debug: Gamepad Control Updated!"
         return
     end
 

@@ -1,28 +1,49 @@
 -- main.lua
 State = {
     GameState = "title",
-    DebugMessage = "DEBUG: Command?",
     CurrentOptionsSelection = 1,
-    MyFont = nil
+    RF_Font = nil,
+    BGM = nil,
+    SFX_Select = nil,
+    SFX_Nav = nil
 }
 
 local rfFontPath = "assets/fonts/RasterForgeRegular-JpBgm.ttf"
 local optionsScreen = require ("states.options")
 local titleScreen = require("states.title")
+local introScreen = require("states.intro")
 
 -- init
 function love.load()
     love.mouse.setVisible(false)
-    love.window.setMode(0, 0, { fullscreen = true, fullscreentype = "desktop", vsync = true })
+
+    State.BGM = love.audio.newSource("assets/oggs/intro.ogg", "stream")
+    State.BGM:setLooping(true)
+    State.BGM:setVolume(0.5) -- Adjust volume between 0.0 and 1.0
+    State.BGM:play()
+
+    State.SFX_Select = love.audio.newSource("assets/wavs/select.wav", "static")
+    State.SFX_Select:setVolume(0.5) -- Adjust volume between 0.0 and 1.0
+    State.SFX_Nav = love.audio.newSource("assets/oggs/nav.ogg", "static")
+    State.SFX_Nav:setVolume(0.5) -- Adjust volume between 0.0 and 1.0
 
     -- Load Textures + Font Elements
-    MyFont = love.graphics.newFont(rfFontPath, 100)
-    MyFont:setFilter("nearest", "nearest")
-    love.graphics.setFont(MyFont)
+    State.RF_Font = love.graphics.newFont(rfFontPath, 100)
+    State.RF_Font:setFilter("nearest", "nearest")
+    love.graphics.setFont(State.RF_Font)
     love.graphics.setDefaultFilter("nearest", "nearest")
 
     titleScreen.load()
     optionsScreen.load()
+    introScreen.load()
+end
+
+-- update loop for the game states --
+function love.update(dt)
+    -- Pass delta time to active screen for animations
+    if State.GameState == "intro" then
+        introScreen.update(dt)
+    end
 end
 
 -- rendering --
@@ -31,13 +52,9 @@ function love.draw()
         titleScreen.draw()
     elseif State.GameState == "options" then
         optionsScreen.draw()
+    elseif State.GameState == "intro" then
+        introScreen.draw()
     end
-
-    -- Draw the persistent footer status logger
-    love.graphics.push("all")
-    love.graphics.setColor(0, 1, 0)
-    love.graphics.print(State.DebugMessage, 400, love.graphics.getHeight() - 80, 0, 0.4, 0.4)
-    love.graphics.pop()
 end
 
 -- hardware event interceptors --
@@ -46,6 +63,10 @@ function love.keypressed(key)
         titleScreen.keypressed(key)
     elseif State.GameState == "options" then
         optionsScreen.keypressed(key)
+    else
+        if key == "q" then
+            love.event.quit()
+        end
     end
 end
 
