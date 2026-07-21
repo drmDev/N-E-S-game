@@ -1,29 +1,28 @@
+-- states/title.lua
 local title = {}
 local constants = require("constants")
--- Title-specific UI states insulated to this module
--- Button scales adjusted down from 5 to 2 to fit 640x360 virtual resolution
+local currentTitleSelection = 1
+
 local titleButtons = {
     { name = "play",  path = "assets/pngs/playBtn.png",  scale = 2 },
     { name = "gear",  path = "assets/pngs/gearBtn.png",  scale = 2 },
     { name = "eject", path = "assets/pngs/ejectBtn.png", scale = 2 }
 }
-local currentTitleSelection = 1
 
--- Load assets and calculate positions ONCE using fixed virtual coordinates
 function title.load()
-    -- Map menu item confirmations to actions
-    titleButtons[1].action = function() 
+    titleButtons[1].action = function() -- play
         State.GameState = "intro"
     end
-    titleButtons[2].action = function() 
+
+    titleButtons[2].action = function() -- gear/options
         State.GameState = "options"
-        State.CurrentOptionsSelection = 1 
-    end
-    titleButtons[3].action = function() 
-        love.event.quit() 
+        State.CurrentOptionsSelection = 1
     end
 
-    -- Phase 1: Measure button dimensions in virtual resolution space
+    titleButtons[3].action = function() -- eject/quit
+        love.event.quit()
+    end
+
     local totalTitleWidth = 0
     local padding = 24
 
@@ -35,12 +34,10 @@ function title.load()
         totalTitleWidth = totalTitleWidth + btn.width
     end
 
-    -- Phase 2: Add padding gaps
-    totalTitleWidth = totalTitleWidth + (padding * (#titleButtons - 1))
+    totalTitleWidth = totalTitleWidth + (padding * (#titleButtons - 1)) -- add padding
 
-    -- Phase 3: Compute fixed virtual coordinates (640x360 grid)
     local startX = (constants.VIRTUAL_WIDTH - totalTitleWidth) / 2
-    local startY = constants.VIRTUAL_HEIGHT * 0.55 -- Positioned slightly below mid-screen
+    local startY = constants.VIRTUAL_HEIGHT * 0.55
 
     for _, btn in ipairs(titleButtons) do
         btn.x = startX
@@ -49,9 +46,7 @@ function title.load()
     end
 end
 
--- Draw elements directly onto the virtual canvas
 function title.draw()
-    -- 1. Draw Title Text centered in virtual space
     love.graphics.push("all")
     love.graphics.setColor(1, 0, 0)
     local titleText = "N / E / S"
@@ -59,15 +54,14 @@ function title.draw()
     love.graphics.print(titleText, (constants.VIRTUAL_WIDTH - fontWidth) / 2, 80)
     love.graphics.pop()
 
-    -- 2. Draw Menu Buttons and Selection Boxes
     for i, btn in ipairs(titleButtons) do
         love.graphics.push("all")
 
         if i == currentTitleSelection then
-            love.graphics.setColor(1, 0.3, 0.3)
+            love.graphics.setColor(1, 0.3, 0.3) -- highlight selected button as reddish-pink
             love.graphics.rectangle("line", btn.x - 4, btn.y - 4, btn.width + 8, btn.height + 8)
         else
-            love.graphics.setColor(0.4, 0.4, 0.4)
+            love.graphics.setColor(0.4, 0.4, 0.4) -- dim non-selected buttons
         end
 
         love.graphics.draw(btn.img, btn.x, btn.y, 0, btn.scale, btn.scale)
@@ -75,7 +69,6 @@ function title.draw()
     end
 end
 
--- Nav playing sounds and handling wrapping
 local function navigate(direction)
     if direction == "left" or direction == "right" then
         State.SFX_Nav:play()
@@ -106,7 +99,6 @@ function title.getNewSelection(current, totalItems, direction)
     return current
 end
 
--- Handle key press events for the title screen
 function title.keypressed(key)
     if key == "left" or key == "a" then navigate("left")
     elseif key == "right" or key == "d" then navigate("right")
@@ -114,7 +106,6 @@ function title.keypressed(key)
     end
 end
 
--- Gamepad press events for the title screen
 function title.gamepadpressed(_, button)
     if button == "dpleft" then navigate("left")
     elseif button == "dpright" then navigate("right")

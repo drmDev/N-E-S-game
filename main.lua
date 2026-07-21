@@ -15,33 +15,31 @@ local introScreen = require("states.intro")
 local push = require("lib.push")
 local constants = require("constants")
 
--- Virtual dimensions your game logic targets
-local VIRTUAL_WIDTH, VIRTUAL_HEIGHT = constants.VIRTUAL_WIDTH, constants.VIRTUAL_HEIGHT
--- Default window startup dimensions
-local WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
+local states = {
+    title = titleScreen,
+    options = optionsScreen,
+    intro = introScreen
+}
 
--- init
 function love.load()
     love.mouse.setVisible(false)
 
-    -- Configure push canvas
-    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
+    push:setupScreen(constants.VIRTUAL_WIDTH, constants.VIRTUAL_HEIGHT, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT, {
         fullscreen = false,
         resizable = true,
-        pixelperfect = true -- Keeps pixels crisp during integer scaling
+        pixelperfect = true
     })
 
     State.BGM = love.audio.newSource("assets/oggs/intro.ogg", "stream")
     State.BGM:setLooping(true)
-    State.BGM:setVolume(0.5) -- Adjust volume between 0.0 and 1.0
+    State.BGM:setVolume(0.5)
     State.BGM:play()
 
     State.SFX_Select = love.audio.newSource("assets/wavs/select.wav", "static")
-    State.SFX_Select:setVolume(0.5) -- Adjust volume between 0.0 and 1.0
+    State.SFX_Select:setVolume(0.5)
     State.SFX_Nav = love.audio.newSource("assets/oggs/nav.ogg", "static")
-    State.SFX_Nav:setVolume(0.5) -- Adjust volume between 0.0 and 1.0
+    State.SFX_Nav:setVolume(0.5)
 
-    -- Load Textures + Font Elements
     State.RF_Font = love.graphics.newFont(rfFontPath, 100)
     State.RF_Font:setFilter("nearest", "nearest")
     love.graphics.setFont(State.RF_Font)
@@ -52,52 +50,37 @@ function love.load()
     introScreen.load()
 end
 
--- Pass window resize events to push
+local function dispatch(eventName, ...)
+    local currentState = states[State.GameState]
+    if currentState and currentState[eventName] then
+        currentState[eventName](...)
+    end
+end
+
 function love.resize(w, h)
     push:resize(w, h)
 end
 
--- update loop for the game states --
 function love.update(dt)
-    -- Pass delta time to active screen for animations
-    if State.GameState == "intro" then
-        introScreen.update(dt)
-    end
+    dispatch("update", dt)
 end
 
--- rendering --
 function love.draw()
     push:start()
-
-    if State.GameState == "title" then
-        titleScreen.draw()
-    elseif State.GameState == "options" then
-        optionsScreen.draw()
-    elseif State.GameState == "intro" then
-        introScreen.draw()
-    end
-    
+    dispatch("draw")
     push:finish()
 end
 
--- hardware event interceptors --
+-- TODO: consider Baton or similar library to deduplicate these
 function love.keypressed(key)
-    if State.GameState == "title" then
-        titleScreen.keypressed(key)
-    elseif State.GameState == "options" then
-        optionsScreen.keypressed(key)
-    else
-        if key == "q" then
-            love.event.quit()
-        end
+    if key == "q" and State.GameState ~= "options" then
+        love.event.quit()
+        return
     end
+
+    dispatch("keypressed", key)
 end
 
--- gamepad event interceptor --
 function love.gamepadpressed(joystick, button)
-    if State.GameState == "title" then
-        titleScreen.gamepadpressed(joystick, button)
-    elseif State.GameState == "options" then
-        optionsScreen.gamepadpressed(joystick, button)
-    end
+    dispatch("gamepadpressed", joystick, button)
 end

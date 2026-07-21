@@ -1,3 +1,4 @@
+-- states/options.lua
 local options = {}
 local constants = require("constants")
 local controls = require("config")
@@ -6,7 +7,6 @@ local isRemapping = false
 local TOTAL_ITEMS = #controls + 1
 local BACK_BUTTON_INDEX = TOTAL_ITEMS
 
--- UI Layout Constants
 local LAYOUT = {
     HEADER_Y = 20,
     HEADER_SCALE = 0.45,
@@ -23,6 +23,7 @@ local LAYOUT = {
 local rewindBtn = { path = "assets/pngs/btnRewind.png", scale = LAYOUT.REWIND_SCALE }
 
 function options.getNewSelection(current, totalItems, direction)
+    -- wrapping special handling
     if direction == "up" then
         current = current - 1
         if current < 1 then return totalItems end
@@ -32,12 +33,14 @@ function options.getNewSelection(current, totalItems, direction)
         if current > totalItems then return 1 end
         return current
     end
+
     return current
 end
 
 local function navigate(direction)
     if isRemapping then return end
 
+    -- wrapping special handling
     if direction == "up" or direction == "down" then
         State.SFX_Nav:play()
         State.CurrentOptionsSelection = options.getNewSelection(
@@ -63,7 +66,6 @@ function options.load()
     end
 
     rewindBtn.img = love.graphics.newImage(rewindBtn.path)
-    -- Precalculate image dimensions once on load
     rewindBtn.width = rewindBtn.img:getWidth() * rewindBtn.scale
     rewindBtn.height = rewindBtn.img:getHeight() * rewindBtn.scale
     rewindBtn.x = (constants.VIRTUAL_WIDTH - rewindBtn.width) / 2
@@ -72,7 +74,6 @@ end
 function options.draw()
     local font = State.RF_Font or love.graphics.getFont()
 
-    -- 1. Header
     love.graphics.push("all")
     love.graphics.setColor(1, 0, 0)
     local headerText = "OPTIONS"
@@ -80,18 +81,17 @@ function options.draw()
     love.graphics.print(headerText, (constants.VIRTUAL_WIDTH - fontWidth) / 2, LAYOUT.HEADER_Y, 0, LAYOUT.HEADER_SCALE, LAYOUT.HEADER_SCALE)
     love.graphics.pop()
 
-    -- 2. Control Mapping List
     local currentY = LAYOUT.START_Y
 
     for i, ctrl in ipairs(controls) do
         love.graphics.push("all")
 
         if i == State.CurrentOptionsSelection and not isRemapping then
-            love.graphics.setColor(1, 0.3, 0.3)
+            love.graphics.setColor(1, 0.3, 0.3) -- Highlight current selection in red
         elseif i == State.CurrentOptionsSelection and isRemapping then
-            love.graphics.setColor(1, 1, 0)
+            love.graphics.setColor(1, 1, 0) -- Highlight current selection in yellow during remapping
         else
-            love.graphics.setColor(0.5, 0.5, 0.5)
+            love.graphics.setColor(0.5, 0.5, 0.5) -- Default color for non-selected items
         end
 
         if ctrl.type == "icon" then
@@ -111,18 +111,17 @@ function options.draw()
         currentY = currentY + LAYOUT.ROW_SPACING
     end
 
-    -- 3. Rewind / Back Button
     love.graphics.push("all")
-    local rwY = currentY + 5
+    local rewindAdjustedY = currentY + 5 -- give it space after the other controls
 
     if State.CurrentOptionsSelection == BACK_BUTTON_INDEX then
-        love.graphics.setColor(1, 0.3, 0.3)
-        love.graphics.rectangle("line", rewindBtn.x - 4, rwY - 4, rewindBtn.width + 8, rewindBtn.height + 8)
+        love.graphics.setColor(1, 0.3, 0.3) -- Highlight rewind/back button when selected to reddish-pink
+        love.graphics.rectangle("line", rewindBtn.x - 4, rewindAdjustedY - 4, rewindBtn.width + 8, rewindBtn.height + 8)
     else
-        love.graphics.setColor(0.4, 0.4, 0.4)
+        love.graphics.setColor(0.4, 0.4, 0.4) -- Default color for rewind/back button when not selected
     end
 
-    love.graphics.draw(rewindBtn.img, rewindBtn.x, rwY, 0, rewindBtn.scale, rewindBtn.scale)
+    love.graphics.draw(rewindBtn.img, rewindBtn.x, rewindAdjustedY, 0, rewindBtn.scale, rewindBtn.scale)
     love.graphics.pop()
 end
 
