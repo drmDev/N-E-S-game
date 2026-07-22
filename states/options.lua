@@ -163,10 +163,10 @@ local function handleInput(value, deviceType)
         local actionId = input.metadata[State.CurrentOptionsSelection].id
         local prefix = (deviceType == "key") and "key:" or "button:"
         local newBindStr = prefix .. value
-        
+
         local currentBinds = input.config.controls[actionId]
         local updatedBinds = {}
-        
+
         -- Filter out old bindings of this specific device type, keep axes/others intact
         for _, source in ipairs(currentBinds) do
             if not source:match("^" .. prefix) then
@@ -175,7 +175,7 @@ local function handleInput(value, deviceType)
         end
         -- Append the new remapped input
         table.insert(updatedBinds, newBindStr)
-        
+
         input.config.controls[actionId] = updatedBinds
         isRemapping = false
         return

@@ -2,7 +2,6 @@
 local intro = {}
 local anim8 = require("lib.anim8")
 local constants = require("constants")
-local SpriteGen = require("lib.sprite_generator")
 local Dialogue = require("ui.dialogue")
 local sti = require("lib.sti")
 local player = require("entities.player")
@@ -13,7 +12,6 @@ local isDialogueActive = true
 local mainCharLyingDown
 local charAnim
 local map
-local imgTv
 
 local charX = 0
 local charY = 0
@@ -36,14 +34,12 @@ function intro.load()
 end
 
 function intro.update(dt)
-    -- Baton must be updated every frame to track 'pressed' and 'released' states
     input:update()
 
     if isDialogueActive then
         charAnim:update(dt)
         Dialogue.update(dt)
 
-        -- Discrete press checks using Baton
         if input:pressed("jump") or input:pressed("action") then
             local wasClosed = Dialogue.advance()
             if wasClosed then
