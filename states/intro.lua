@@ -10,7 +10,7 @@ local controls = require("config")
 
 local isDialogueActive = true
 
-local spriteSheet
+local mainCharLyingDown
 local charAnim
 local map
 local imgTv
@@ -39,10 +39,10 @@ local tvGrid = {
 }
 
 function intro.load()
-    spriteSheet = love.graphics.newImage("assets/pngs/mainChar/lying_down.png")
-    spriteSheet:setFilter("nearest", "nearest")
+    mainCharLyingDown = love.graphics.newImage("assets/pngs/mainChar/lying_down.png")
+    mainCharLyingDown:setFilter("nearest", "nearest")
 
-    local grid = anim8.newGrid(21, 16, spriteSheet:getWidth(), spriteSheet:getHeight())
+    local grid = anim8.newGrid(21, 16, mainCharLyingDown:getWidth(), mainCharLyingDown:getHeight())
     charAnim = anim8.newAnimation(grid('6-1', 1), 0.50, 'pauseAtEnd')
 
     imgTv = SpriteGen.fromGrid(tvGrid)
@@ -75,7 +75,7 @@ function intro.draw()
     love.graphics.draw(imgTv, tvX, tvY, 0, SCALE, SCALE)
 
     if isDialogueActive then
-        charAnim:draw(spriteSheet, charX, charY, 0, SCALE, SCALE)
+        charAnim:draw(mainCharLyingDown, charX, charY, 0, SCALE, SCALE)
         Dialogue.drawBanner("ow... my head... where am I?")
     else
         player.draw()
@@ -98,7 +98,7 @@ local function isActionTriggered(actionId, inputVal, inputType)
 end
 
 function intro.keypressed(key)
-if Dialogue.isActive() and isActionTriggered("action", key, "key") then
+    if Dialogue.isActive() and isActionTriggered("action", key, "key") then
         local wasClosed = Dialogue.advance()
         if wasClosed then
             isDialogueActive = false

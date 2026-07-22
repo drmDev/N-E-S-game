@@ -1,20 +1,17 @@
 -- ui/dialogue.lua
 local Dialogue = {}
 
--- Local module state (Isolated & Testable)
 Dialogue.state = "inactive" -- "inactive", "typing", "finished"
 Dialogue.currentText = ""
 Dialogue.visibleChars = 0
 Dialogue.typeTimer = 0
 Dialogue.TEXT_SPEED = 0.03
 
--- Config constants
 local BOX_SCALE = 0.6
 local TEXT_COLOR = {0.1, 0.1, 0.1, 1}
 local PADDING_X = 10 * BOX_SCALE
 local PADDING_Y = 8 * BOX_SCALE
 
--- Lazy-loaded graphics resources (allows unit testing headlessly outside LÖVE)
 local boxImg = nil
 local font = nil
 
@@ -56,12 +53,12 @@ function Dialogue.advance()
     if Dialogue.state == "typing" then
         Dialogue.visibleChars = #Dialogue.currentText
         Dialogue.state = "finished"
-        return false -- Still active, just skipped typing animation
+        return false
     elseif Dialogue.state == "finished" then
         Dialogue.state = "inactive"
         Dialogue.currentText = ""
         Dialogue.visibleChars = 0
-        return true -- Dialogue successfully closed!
+        return true
     end
     return false
 end
@@ -70,9 +67,11 @@ function Dialogue.isActive()
     return Dialogue.state ~= "inactive"
 end
 
-function Dialogue.drawBanner(text)
+function Dialogue.drawBanner(_)
     if not love or not love.graphics then return end
     ensureAssetsLoaded()
+
+    if not boxImg or not font then return end
 
     local constants = require("constants")
 
@@ -81,13 +80,11 @@ function Dialogue.drawBanner(text)
     local boxW = boxImg:getWidth() * BOX_SCALE
     local boxH = boxImg:getHeight() * BOX_SCALE
     local boxX = math.floor((constants.VIRTUAL_WIDTH - boxW) / 2)
-    local boxY = 10 -- Top padding
+    local boxY = 10
 
-    -- 1. Draw Dialogue Box Background
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(boxImg, boxX, boxY, 0, BOX_SCALE, BOX_SCALE)
 
-    -- 2. Draw Typewriter Text
     love.graphics.setFont(font)
     love.graphics.setColor(TEXT_COLOR)
 
@@ -98,7 +95,6 @@ function Dialogue.drawBanner(text)
     local displayedText = string.sub(Dialogue.currentText, 1, Dialogue.visibleChars)
     love.graphics.printf(displayedText, textX, textY, maxTextWidth, "center")
 
-    -- 3. Draw Blinking Action Prompt Icon when finished
     if Dialogue.state == "finished" then
         local bounce = math.sin(love.timer.getTime() * 8) * 2
         local promptX = boxX + boxW - 16

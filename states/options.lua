@@ -20,6 +20,24 @@ local LAYOUT = {
     REWIND_SCALE = 1.5
 }
 
+local KEY_MAP = {
+    escape    = "back",
+    left      = "left",    a = "left",
+    right     = "right",   d = "right",
+    up        = "up",      w = "up",
+    down      = "down",    s = "down",
+    ["return"]= "confirm", kpenter = "confirm", space = "confirm", z = "confirm"
+}
+
+local PAD_MAP = {
+    back    = "back",
+    dpleft  = "left",
+    dpright = "right",
+    dpup    = "up",
+    dpdown  = "down",
+    a       = "confirm", start = "confirm", x = "confirm"
+}
+
 local rewindBtn = { path = "assets/pngs/btnRewind.png", scale = LAYOUT.REWIND_SCALE }
 
 function options.getNewSelection(current, totalItems, direction)
@@ -112,7 +130,7 @@ function options.draw()
     end
 
     love.graphics.push("all")
-    local rewindAdjustedY = currentY + 5 -- give it space after the other controls
+    local rewindAdjustedY = currentY + 5
 
     if State.CurrentOptionsSelection == BACK_BUTTON_INDEX then
         love.graphics.setColor(1, 0.3, 0.3) -- Highlight rewind/back button when selected to reddish-pink
@@ -125,38 +143,29 @@ function options.draw()
     love.graphics.pop()
 end
 
-function options.keypressed(key)
+local function handleInput(value, deviceType)
     if isRemapping then
-        controls[State.CurrentOptionsSelection].key = key
+        controls[State.CurrentOptionsSelection][deviceType] = value
         isRemapping = false
         return
     end
 
-    if key == "escape" then
+    local map = (deviceType == "key") and KEY_MAP or PAD_MAP
+    local action = map[value]
+
+    if action == "back" then
         State.GameState = "title"
-    elseif key == "left" or key == "a" then navigate("left")
-    elseif key == "right" or key == "d" then navigate("right")
-    elseif key == "up" or key == "w" then navigate("up")
-    elseif key == "down" or key == "s" then navigate("down")
-    elseif key == "return" or key == "kpenter" or key == "space" or key == "z" then navigate("confirm")
+    elseif action then
+        navigate(action)
     end
 end
 
-function options.gamepadpressed(_, button)
-    if isRemapping then
-        controls[State.CurrentOptionsSelection].pad = button
-        isRemapping = false
-        return
-    end
+function options.keypressed(key)
+    handleInput(key, "key")
+end
 
-    if button == "back" then
-        State.GameState = "title"
-    elseif button == "dpleft" then navigate("left")
-    elseif button == "dpright" then navigate("right")
-    elseif button == "dpup" then navigate("up")
-    elseif button == "dpdown" then navigate("down")
-    elseif button == "a" or button == "start" or button == "x" then navigate("confirm")
-    end
+function options.gamepadpressed(_, button)
+    handleInput(button, "pad")
 end
 
 return options
