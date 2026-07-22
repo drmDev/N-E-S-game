@@ -6,7 +6,7 @@ local SpriteGen = require("lib.sprite_generator")
 local Dialogue = require("ui.dialogue")
 local sti = require("lib.sti")
 local player = require("entities.player")
-local controls = require("config")
+local input = require("config")
 
 local isDialogueActive = true
 
@@ -36,9 +36,20 @@ function intro.load()
 end
 
 function intro.update(dt)
+    -- Baton must be updated every frame to track 'pressed' and 'released' states
+    input:update()
+
     if isDialogueActive then
         charAnim:update(dt)
         Dialogue.update(dt)
+
+        -- Discrete press checks using Baton
+        if input:pressed("jump") or input:pressed("action") then
+            local wasClosed = Dialogue.advance()
+            if wasClosed then
+                isDialogueActive = false
+            end
+        end
     else
         player.update(dt)
     end
@@ -52,44 +63,6 @@ function intro.draw()
         Dialogue.drawBanner("ow... my head... where am I?")
     else
         player.draw()
-    end
-end
-
-local function isActionTriggered(actionIds, inputVal, inputType)
-    if type(actionIds) == "string" then
-        actionIds = { actionIds }
-    end
-
-    for _, ctrl in ipairs(controls) do
-        for _, id in ipairs(actionIds) do
-            if ctrl.id == id then
-                if inputType == "key" and ctrl.key == inputVal then
-                    return true
-                elseif inputType == "pad" and ctrl.pad == inputVal then
-                    return true
-                end
-            end
-        end
-    end
-    return false
-end
-
-local ADVANCE_ACTIONS = { "jump", "action" }
-function intro.keypressed(key)
-    if Dialogue.isActive() and isActionTriggered(ADVANCE_ACTIONS, key, "key") then
-        local wasClosed = Dialogue.advance()
-        if wasClosed then
-            isDialogueActive = false
-        end
-    end
-end
-
-function intro.gamepadpressed(_, button)
-    if Dialogue.isActive() and isActionTriggered(ADVANCE_ACTIONS, button, "pad") then
-        local wasClosed = Dialogue.advance()
-        if wasClosed then
-            isDialogueActive = false
-        end
     end
 end
 

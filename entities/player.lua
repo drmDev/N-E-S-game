@@ -1,6 +1,6 @@
 -- entities/player.lua
 local anim8 = require("lib.anim8")
-local controls = require("config")
+local input = require("config")
 
 local player = {
     x = 300,
@@ -40,44 +40,16 @@ function player.load(startX, startY)
     player.currentImg = player.imgs.idle_down
 end
 
-local function isActionActive(action)
-    local joysticks = love.joystick.getJoysticks()
-    for _, control in ipairs(controls) do
-        if control.id == action then
-            if control.key and love.keyboard.isDown(control.key) then
-                return true
-            end
-            if joysticks[1] and joysticks[1]:isGamepad() and control.pad and joysticks[1]:isGamepadDown(control.pad) then
-                return true
-            end
-        end
-    end
-    return false
-end
-
 function player.update(dt)
-    local dx, dy = 0, 0
+    -- Baton handles ALL deadzones, analog scaling, and diagonal normalization!
+    local dx, dy = input:get("move")
 
-    if isActionActive("up")    then dy = dy - 1 end
-    if isActionActive("down")  then dy = dy + 1 end
-    if isActionActive("left")  then dx = dx - 1 end
-    if isActionActive("right") then dx = dx + 1 end
-
-    -- Fix diagonal speed calculations
-    local isHoldingBothSideVert = (dx ~= 0 and dy ~= 0)
-    if isHoldingBothSideVert then
-        local norm = 1 / math.sqrt(2)
-        dx = dx * norm
-        dy = dy * norm
-    end
-
-    local newlyCalculatedX = player.x + dx * player.speed * dt
-    local newlyCalculatedY = player.y + dy * player.speed * dt
-    player.x = newlyCalculatedX
-    player.y = newlyCalculatedY
+    player.x = player.x + dx * player.speed * dt
+    player.y = player.y + dy * player.speed * dt
 
     player.isMoving = (dx ~= 0 or dy ~= 0)
 
+    -- Only update direction if there is active input so the character doesn't snap to a default facing
     if dx > 0 then
         player.direction = "right"
     elseif dx < 0 then
@@ -88,14 +60,9 @@ function player.update(dt)
         player.direction = "up"
     end
 
-    local state
-    if player.isMoving then
-        state = "run"
-    else
-        state = "idle"
-    end
-
+    local state = player.isMoving and "run" or "idle"
     local animKey = state .. "_" .. player.direction
+    
     player.currentAnim = player.anims[animKey]
     player.currentImg = player.imgs[animKey]
 
@@ -106,7 +73,6 @@ end
 
 function player.draw()
     love.graphics.push("all")
-
     love.graphics.setColor(1, 1, 1, 1)
 
     if player.currentAnim and player.currentImg then
