@@ -1,36 +1,39 @@
--- ui/dialogue.lua
 local Dialogue = {}
+local constants = require("constants")
 
---- Draws a standardized dialogue box anchored over a target point
--- @param text string: The string message to display
--- @param anchorX number: Center X coordinate to position above
--- @param anchorY number: Top Y coordinate (e.g. character top)
--- @param scale number: Pixel scale factor
-function Dialogue.drawOver(text, anchorX, anchorY, scale)
-    scale = scale or 1
-    local font = love.graphics.getFont()
+local boxImg = love.graphics.newImage("assets/pngs/dialog1.png")
+boxImg:setFilter("nearest", "nearest")
 
-    -- Design Metrics
-    local textScale = 0.11
-    local paddingX, paddingY = 10, 8
+local font = love.graphics.newFont("assets/fonts/KindlyRewind-BOon.ttf", 12)
+font:setFilter("nearest", "nearest")
 
-    -- Calculate Dynamic Size from Text Length
-    local textWidth = font:getWidth(text) * textScale
-    local textHeight = font:getHeight() * textScale
-    local boxW = textWidth + (paddingX * 2)
-    local boxH = textHeight + (paddingY * 2)
+-- Config constants scoped locally to the module
+local BOX_SCALE = 0.6
+local TEXT_COLOR = {0.1, 0.1, 0.1, 1}
+local PADDING_X = 10 * BOX_SCALE
+local PADDING_Y = 8 * BOX_SCALE
 
-    -- Position Centered Above Target
-    local boxX = math.floor(anchorX - (boxW / 2))
-    local boxY = math.floor(anchorY - boxH - 8)
-
-    -- TODO: replace with asset when ready    
+function Dialogue.drawBanner(text)
     love.graphics.push("all")
-    love.graphics.setColor(0, 0, 0, 0.85)
-    love.graphics.rectangle("fill", boxX, boxY, boxW, boxH)
+
+    local boxW = boxImg:getWidth() * BOX_SCALE
+    local boxX = math.floor((constants.VIRTUAL_WIDTH - boxW) / 2)
+    local boxY = 10
+
+    -- Draw box
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.rectangle("line", boxX, boxY, boxW, boxH)
-    love.graphics.print(text, boxX + paddingX, boxY + paddingY, 0, textScale, textScale)
+    love.graphics.draw(boxImg, boxX, boxY, 0, BOX_SCALE, BOX_SCALE)
+
+    -- Draw text
+    love.graphics.setFont(font)
+    love.graphics.setColor(TEXT_COLOR)
+
+    local textX = boxX + PADDING_X
+    local textY = boxY + PADDING_Y
+    local maxTextWidth = boxW - (PADDING_X * 2)
+
+    love.graphics.printf(text, textX, textY, maxTextWidth, "center")
+
     love.graphics.pop()
 end
 
