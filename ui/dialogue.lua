@@ -14,6 +14,9 @@ local PADDING_Y = 8 * BOX_SCALE
 
 local boxImg = nil
 local font = nil
+local arrowImg = nil
+
+local constants = require("constants")
 
 local function ensureAssetsLoaded()
     if not love or not love.graphics then return end
@@ -25,19 +28,29 @@ local function ensureAssetsLoaded()
         font = love.graphics.newFont("assets/fonts/KindlyRewind-BOon.ttf", 12)
         font:setFilter("nearest", "nearest")
     end
+    if not arrowImg then
+        arrowImg = love.graphics.newImage("assets/pngs/triangle.png")
+        arrowImg:setFilter("nearest", "nearest")
+    end
 end
 
 function Dialogue.start(text)
     Dialogue.currentText = text or ""
     Dialogue.visibleChars = 0
     Dialogue.typeTimer = 0
-    Dialogue.state = #Dialogue.currentText > 0 and "typing" or "inactive"
+
+    if #Dialogue.currentText > 0 then
+        Dialogue.state = "typing"
+    else
+        Dialogue.state = "inactive"
+    end
 end
 
 function Dialogue.update(dt)
     if Dialogue.state ~= "typing" then return end
 
     Dialogue.typeTimer = Dialogue.typeTimer + dt
+
     if Dialogue.typeTimer >= Dialogue.TEXT_SPEED then
         Dialogue.typeTimer = Dialogue.typeTimer - Dialogue.TEXT_SPEED
         Dialogue.visibleChars = Dialogue.visibleChars + 1
@@ -71,9 +84,7 @@ function Dialogue.drawBanner(_)
     if not love or not love.graphics then return end
     ensureAssetsLoaded()
 
-    if not boxImg or not font then return end
-
-    local constants = require("constants")
+    if not boxImg or not font or not arrowImg then return end
 
     love.graphics.push("all")
 
@@ -96,12 +107,12 @@ function Dialogue.drawBanner(_)
     love.graphics.printf(displayedText, textX, textY, maxTextWidth, "center")
 
     if Dialogue.state == "finished" then
-        local bounce = math.sin(love.timer.getTime() * 8) * 2
-        local promptX = boxX + boxW - 16
-        local promptY = boxY + boxH - 14 + bounce
+        local scale = BOX_SCALE + 0.5
+        local promptX = boxX + boxW - (arrowImg:getWidth() * scale) - PADDING_X
+        local promptY = boxY + boxH - (arrowImg:getHeight() * scale) - PADDING_Y
 
-        love.graphics.setColor(0.2, 0.2, 0.2, 1)
-        love.graphics.polygon("fill", promptX, promptY, promptX + 8, promptY, promptX + 4, promptY + 5)
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.draw(arrowImg, math.floor(promptX), math.floor(promptY), 0, scale, scale)
     end
 
     love.graphics.pop()
