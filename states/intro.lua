@@ -52,11 +52,13 @@ function intro.load()
     charY = math.floor((constants.VIRTUAL_HEIGHT - (16 * SCALE)) / 2)
 
     player.load(charX, charY)
+    Dialogue.start("ow... my head... where am I?")
 end
 
 function intro.update(dt)
     if isDialogueActive then
         charAnim:update(dt)
+        Dialogue.update(dt)
     else
         player.update(dt)
     end
@@ -82,24 +84,33 @@ function intro.draw()
     love.graphics.pop()
 end
 
-function intro.keypressed(key)
-    if isDialogueActive then
-        for _, ctrl in ipairs(controls) do
-            if ctrl.id == "action" and ctrl.key == key then
-                isDialogueActive = false
-                break
+local function isActionTriggered(actionId, inputVal, inputType)
+    for _, ctrl in ipairs(controls) do
+        if ctrl.id == actionId then
+            if inputType == "key" and ctrl.key == inputVal then
+                return true
+            elseif inputType == "pad" and ctrl.pad == inputVal then
+                return true
             end
+        end
+    end
+    return false
+end
+
+function intro.keypressed(key)
+if Dialogue.isActive() and isActionTriggered("action", key, "key") then
+        local wasClosed = Dialogue.advance()
+        if wasClosed then
+            isDialogueActive = false
         end
     end
 end
 
 function intro.gamepadpressed(_, button)
-    if isDialogueActive then
-        for _, ctrl in ipairs(controls) do
-            if ctrl.id == "action" and ctrl.pad == button then
-                isDialogueActive = false
-                break
-            end
+    if Dialogue.isActive() and isActionTriggered("action", button, "pad") then
+        local wasClosed = Dialogue.advance()
+        if wasClosed then
+            isDialogueActive = false
         end
     end
 end
