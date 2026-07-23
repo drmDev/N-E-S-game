@@ -17,6 +17,7 @@ local map
 local world
 
 local uiSheet
+local promptAnim
 local tvObj = nil
 
 local charX = 0
@@ -31,7 +32,7 @@ function intro.load()
     charAnim = anim8.newAnimation(grid('6-1', 1), 0.50, 'pauseAtEnd')
 
     world = bump.newWorld(16)
-    map = sti("assets/maps/intro_room.lua", { "bump" })
+    map = sti("assets/worlds/intro/intro_room.lua", { "bump" })
     map:bump_init(world)
 
     if map.layers["Collidable"] then
@@ -49,13 +50,13 @@ function intro.load()
     end
 
     -- Load UI sheet 
-    uiSheet = love.graphics.newImage("assets/pngs/greenBtns.png")
+    uiSheet = love.graphics.newImage("assets/ui/greenBtns.png")
     uiSheet:setFilter("nearest", "nearest")
-    
+
     -- Precise 16x16 Quads for Green Button (Unpressed & Pressed)
-uiSheet = love.graphics.newImage("assets/pngs/greenBtns.png")
+    uiSheet = love.graphics.newImage("assets/ui/greenBtns.png")
     uiSheet:setFilter("nearest", "nearest")
-    
+
     local buttonGrid = anim8.newGrid(20, 16, uiSheet:getWidth(), uiSheet:getHeight())
     promptAnim = anim8.newAnimation(buttonGrid('1-2', 1), 0.4)
 
@@ -95,7 +96,7 @@ function intro.update(dt)
         end
     else
         player.update(dt)
-        promptAnim:update(dt) -- Replaces manual timer code
+        promptAnim:update(dt)
 
         if checkTvProximity() and input:pressed("action") then
             Dialogue.start("DEMO")
@@ -113,12 +114,13 @@ function intro.draw()
     else
         player.draw()
 
+        -- TODO: clean up to not do all this math
         if checkTvProximity() and tvObj and not isDialogueActive then
             local floatY = math.sin(love.timer.getTime() * 5) * 2
-            local promptX = tvObj.x + (tvObj.width / 2) - 10 -- Offset centered for 20px width
+            local promptX = tvObj.x + (tvObj.width / 2) - 10
             local promptY = tvObj.y - 20 + floatY
 
-            promptAnim:draw(uiSheet, math.floor(promptX), math.floor(promptY)) -- Replaces love.graphics.draw with quads
+            promptAnim:draw(uiSheet, math.floor(promptX), math.floor(promptY))
         end
     end
 

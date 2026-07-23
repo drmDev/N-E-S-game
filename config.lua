@@ -18,12 +18,11 @@ local input = baton.new({
     deadzone = 0.3
 })
 
--- UI metadata preserved for options.lua
 input.metadata = {
-    { id = "up",     label = "Up",      type = "icon", path = "assets/pngs/dpadUp.png" },
-    { id = "down",   label = "Down",    type = "icon", path = "assets/pngs/dpadDown.png" },
-    { id = "left",   label = "Left",    type = "icon", path = "assets/pngs/dpadLeft.png" },
-    { id = "right",  label = "Right",   type = "icon", path = "assets/pngs/dpadRight.png" },
+    { id = "up",     label = "Up",      type = "icon", path = "assets/ui/dpadUp.png" },
+    { id = "down",   label = "Down",    type = "icon", path = "assets/ui/dpadDown.png" },
+    { id = "left",   label = "Left",    type = "icon", path = "assets/ui/dpadLeft.png" },
+    { id = "right",  label = "Right",   type = "icon", path = "assets/ui/dpadRight.png" },
     { id = "action", label = "[Action]",type = "text" },
     { id = "jump",   label = "[Jump]",  type = "text" }
 }

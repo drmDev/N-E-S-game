@@ -20,9 +20,7 @@ function player.load(startX, startY, world)
     player.y = startY or player.y
     player.world = world
 
-    -- Add player collision box to the Bump physics world (width x height scaled)
     if player.world then
-        -- 13x16 is the base bounding box for the main character sprite
         player.world:add(player, player.x, player.y, 13 * player.scale, 16 * player.scale)
     end
 
@@ -48,13 +46,11 @@ function player.load(startX, startY, world)
 end
 
 function player.update(dt)
-    -- Baton handles ALL deadzones, analog scaling, and diagonal normalization
     local dx, dy = input:get("move")
 
     local targetX = player.x + dx * player.speed * dt
     local targetY = player.y + dy * player.speed * dt
 
-    -- Use Bump.lua to handle wall collision and smooth sliding
     if player.world then
         local actualX, actualY, cols, len = player.world:move(player, targetX, targetY)
         player.x = actualX
@@ -66,7 +62,6 @@ function player.update(dt)
 
     player.isMoving = (dx ~= 0 or dy ~= 0)
 
-    -- Only update direction if there is active input so the character doesn't snap to a default facing
     if dx > 0 then
         player.direction = "right"
     elseif dx < 0 then

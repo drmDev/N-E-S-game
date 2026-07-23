@@ -30,14 +30,14 @@ function love.load()
         pixelperfect = true
     })
 
-    State.BGM = love.audio.newSource("assets/oggs/intro.ogg", "stream")
+    State.BGM = love.audio.newSource("assets/audio/music/intro.ogg", "stream")
     State.BGM:setLooping(true)
     State.BGM:setVolume(0.5)
     -- State.BGM:play() -- disable while I'm frequently debugging
 
-    State.SFX_Select = love.audio.newSource("assets/wavs/select.wav", "static")
+    State.SFX_Select = love.audio.newSource("assets/audio/sfx/select.wav", "static")
     State.SFX_Select:setVolume(0.5)
-    State.SFX_Nav = love.audio.newSource("assets/oggs/nav.ogg", "static")
+    State.SFX_Nav = love.audio.newSource("assets/audio/sfx/nav.ogg", "static")
     State.SFX_Nav:setVolume(0.5)
 
     State.RF_Font = love.graphics.newFont(rfFontPath, 100)
@@ -71,7 +71,7 @@ function love.draw()
     push:finish()
 end
 
--- TODO: consider Baton or similar library to deduplicate these
+-- TODO: refactor to use Baron
 function love.keypressed(key)
     if key == "q" and State.GameState ~= "options" then
         love.event.quit()

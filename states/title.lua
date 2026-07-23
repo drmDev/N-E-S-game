@@ -4,9 +4,9 @@ local constants = require("constants")
 local currentTitleSelection = 1
 
 local titleButtons = {
-    { name = "play",  path = "assets/pngs/playBtn.png",  scale = 2 },
-    { name = "gear",  path = "assets/pngs/gearBtn.png",  scale = 2 },
-    { name = "eject", path = "assets/pngs/ejectBtn.png", scale = 2 }
+    { name = "play",  path = "assets/ui/playBtn.png",  scale = 2 },
+    { name = "gear",  path = "assets/ui/gearBtn.png",  scale = 2 },
+    { name = "eject", path = "assets/ui/ejectBtn.png", scale = 2 }
 }
 
 function title.load()
@@ -34,7 +34,7 @@ function title.load()
         totalTitleWidth = totalTitleWidth + btn.width
     end
 
-    totalTitleWidth = totalTitleWidth + (padding * (#titleButtons - 1)) -- add padding
+    totalTitleWidth = totalTitleWidth + (padding * (#titleButtons - 1))
 
     local startX = (constants.VIRTUAL_WIDTH - totalTitleWidth) / 2
     local startY = constants.VIRTUAL_HEIGHT * 0.55
@@ -54,6 +54,7 @@ function title.draw()
     love.graphics.print(titleText, (constants.VIRTUAL_WIDTH - fontWidth) / 2, 80)
     love.graphics.pop()
 
+    -- TODO: refine colors used
     for i, btn in ipairs(titleButtons) do
         love.graphics.push("all")
 

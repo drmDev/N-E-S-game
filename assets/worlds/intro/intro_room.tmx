@@ -4,16 +4,16 @@
   <export target="intro_room.lua" format="lua"/>
  </editorsettings>
  <tileset firstgid="1" name="floorWall" tilewidth="16" tileheight="16" tilecount="100" columns="10">
-  <image source="../pngs/introRoom/floorWall16x16.png" width="160" height="160"/>
+  <image source="floorWall16x16.png" width="160" height="160"/>
  </tileset>
  <tileset firstgid="101" name="Door" tilewidth="16" tileheight="32" tilecount="1" columns="1">
-  <image source="../pngs/introRoom/door16x32.png" width="16" height="32"/>
+  <image source="door16x32.png" width="16" height="32"/>
  </tileset>
  <tileset firstgid="102" name="Windows" tilewidth="16" tileheight="16" tilecount="312" columns="26">
-  <image source="../pngs/introRoom/tileset_prison.png" width="416" height="192"/>
+  <image source="tileset_prison.png" width="416" height="192"/>
  </tileset>
  <tileset firstgid="414" name="TV" tilewidth="16" tileheight="16" tilecount="1" columns="1">
-  <image source="../pngs/introRoom/crt_tv.png" width="16" height="16"/>
+  <image source="crt_tv.png" width="16" height="16"/>
  </tileset>
  <layer id="1" name="Floor" width="40" height="23">
   <data encoding="csv">

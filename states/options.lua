@@ -38,7 +38,7 @@ local PAD_MAP = {
     a       = "confirm", start = "confirm", x = "confirm"
 }
 
-local rewindBtn = { path = "assets/pngs/btnRewind.png", scale = LAYOUT.REWIND_SCALE }
+local rewindBtn = { path = "assets/ui/btnRewind.png", scale = LAYOUT.REWIND_SCALE }
 
 function options.getNewSelection(current, totalItems, direction)
     if direction == "up" then
@@ -75,7 +75,7 @@ end
 
 function options.load()
     if not love or not love.graphics then return end -- Safety for unit tests
-    
+
     for _, meta in ipairs(input.metadata) do
         if meta.type == "icon" then
             meta.img = love.graphics.newImage(meta.path)
@@ -88,6 +88,7 @@ function options.load()
     rewindBtn.x = (constants.VIRTUAL_WIDTH - rewindBtn.width) / 2
 end
 
+-- TODO: refactor to improve readability and reduce manual calculations
 function options.draw()
     local font = State.RF_Font or love.graphics.getFont()
 
@@ -103,6 +104,7 @@ function options.draw()
     for i, meta in ipairs(input.metadata) do
         love.graphics.push("all")
 
+        -- TODO: refine colors
         if i == State.CurrentOptionsSelection and not isRemapping then
             love.graphics.setColor(1, 0.3, 0.3)
         elseif i == State.CurrentOptionsSelection and isRemapping then
@@ -117,10 +119,9 @@ function options.draw()
             love.graphics.print(meta.label, LAYOUT.ICON_X, currentY, 0, LAYOUT.LABEL_SCALE, LAYOUT.LABEL_SCALE)
         end
 
-        -- Parse Baton's internal config to find the current Key and Pad bindings
         local keyBind, padBind = "NONE", "NONE"
         local bindings = input.config.controls[meta.id]
-        
+
         if bindings then
             for _, source in ipairs(bindings) do
                 if source:match("^key:") and keyBind == "NONE" then
@@ -167,13 +168,11 @@ local function handleInput(value, deviceType)
         local currentBinds = input.config.controls[actionId]
         local updatedBinds = {}
 
-        -- Filter out old bindings of this specific device type, keep axes/others intact
         for _, source in ipairs(currentBinds) do
             if not source:match("^" .. prefix) then
                 table.insert(updatedBinds, source)
             end
         end
-        -- Append the new remapped input
         table.insert(updatedBinds, newBindStr)
 
         input.config.controls[actionId] = updatedBinds

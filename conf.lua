@@ -1,4 +1,5 @@
 -- conf.lua
+-- TODO: retest fullscreen and more resolutions. verify what vsync will do
 function love.conf(t)
     t.window.title = "N / E / S"
     t.window.fullscreen = false
