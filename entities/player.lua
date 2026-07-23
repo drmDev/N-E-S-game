@@ -15,9 +15,16 @@ local player = {
     currentImg = nil
 }
 
-function player.load(startX, startY)
+function player.load(startX, startY, world)
     player.x = startX or player.x
     player.y = startY or player.y
+    player.world = world
+
+    -- Add player collision box to the Bump physics world (width x height scaled)
+    if player.world then
+        -- 13x16 is the base bounding box for the main character sprite
+        player.world:add(player, player.x, player.y, 13 * player.scale, 16 * player.scale)
+    end
 
     local function loadAnim(path, frameW, frameH, speed)
         local img = love.graphics.newImage(path)
@@ -41,11 +48,21 @@ function player.load(startX, startY)
 end
 
 function player.update(dt)
-    -- Baton handles ALL deadzones, analog scaling, and diagonal normalization!
+    -- Baton handles ALL deadzones, analog scaling, and diagonal normalization
     local dx, dy = input:get("move")
 
-    player.x = player.x + dx * player.speed * dt
-    player.y = player.y + dy * player.speed * dt
+    local targetX = player.x + dx * player.speed * dt
+    local targetY = player.y + dy * player.speed * dt
+
+    -- Use Bump.lua to handle wall collision and smooth sliding
+    if player.world then
+        local actualX, actualY, cols, len = player.world:move(player, targetX, targetY)
+        player.x = actualX
+        player.y = actualY
+    else
+        player.x = targetX
+        player.y = targetY
+    end
 
     player.isMoving = (dx ~= 0 or dy ~= 0)
 
@@ -62,7 +79,7 @@ function player.update(dt)
 
     local state = player.isMoving and "run" or "idle"
     local animKey = state .. "_" .. player.direction
-    
+
     player.currentAnim = player.anims[animKey]
     player.currentImg = player.imgs[animKey]
 
