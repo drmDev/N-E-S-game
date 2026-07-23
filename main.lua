@@ -12,13 +12,15 @@ local rfFontPath = "assets/fonts/RasterForgeRegular-JpBgm.ttf"
 local optionsScreen = require ("states.options")
 local titleScreen = require("states.title")
 local introScreen = require("states.intro")
+local forestScreen = require("states.forest")
 local push = require("lib.push")
 local constants = require("constants")
 
 local states = {
     title = titleScreen,
     options = optionsScreen,
-    intro = introScreen
+    intro = introScreen,
+    forest = forestScreen
 }
 
 function love.load()
@@ -48,6 +50,7 @@ function love.load()
     titleScreen.load()
     optionsScreen.load()
     introScreen.load()
+    forestScreen.load()
 end
 
 local function dispatch(eventName, ...)

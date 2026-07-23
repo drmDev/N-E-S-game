@@ -9,7 +9,7 @@ local player = require("entities.player")
 local input = require("config")
 
 local isDialogueActive = true
-local isDemoActive = false -- Tracks if we are in the DEMO exit dialogue
+local isTvDialogue = false -- Replaces isDemoActive
 
 local mainCharLyingDown
 local charAnim
@@ -39,7 +39,6 @@ function intro.load()
         map.layers["Collidable"].visible = false
     end
 
-    -- Find the TV object from the "Collidable" object layer
     if map.layers["Collidable"] and map.layers["Collidable"].objects then
         for _, obj in ipairs(map.layers["Collidable"].objects) do
             if obj.properties and obj.properties.type == "tv" then
@@ -49,11 +48,6 @@ function intro.load()
         end
     end
 
-    -- Load UI sheet 
-    uiSheet = love.graphics.newImage("assets/ui/greenBtns.png")
-    uiSheet:setFilter("nearest", "nearest")
-
-    -- Precise 16x16 Quads for Green Button (Unpressed & Pressed)
     uiSheet = love.graphics.newImage("assets/ui/greenBtns.png")
     uiSheet:setFilter("nearest", "nearest")
 
@@ -70,7 +64,7 @@ end
 local function checkTvProximity()
     if not tvObj then return false end
 
-    local pad = 12 -- Proximity trigger distance around TV
+    local pad = 12
     return (player.x + 16 > tvObj.x - pad) and
            (player.x < tvObj.x + tvObj.width + pad) and
            (player.y + 16 > tvObj.y - pad) and
@@ -89,8 +83,9 @@ function intro.update(dt)
             if wasClosed then
                 isDialogueActive = false
 
-                if isDemoActive then
-                    love.event.quit()
+                -- If dismissing the TV tape prompt, transition to forest state!
+                if isTvDialogue then
+                    State.GameState = "forest"
                 end
             end
         end
@@ -99,9 +94,9 @@ function intro.update(dt)
         promptAnim:update(dt)
 
         if checkTvProximity() and input:pressed("action") then
-            Dialogue.start("DEMO")
+            Dialogue.start("Play Tape: Forest Glitch?")
             isDialogueActive = true
-            isDemoActive = true
+            isTvDialogue = true
         end
     end
 end
@@ -109,12 +104,12 @@ end
 function intro.draw()
     map:draw()
 
-    if isDialogueActive and not isDemoActive then
+    -- Only render lying down sprite during initial opening wake-up dialogue
+    if isDialogueActive and not isTvDialogue then
         charAnim:draw(mainCharLyingDown, charX, charY, 0, SCALE, SCALE)
     else
         player.draw()
 
-        -- TODO: clean up to not do all this math
         if checkTvProximity() and tvObj and not isDialogueActive then
             local floatY = math.sin(love.timer.getTime() * 5) * 2
             local promptX = tvObj.x + (tvObj.width / 2) - 10
