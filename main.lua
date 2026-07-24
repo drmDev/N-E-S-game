@@ -27,10 +27,11 @@ function love.load()
     love.mouse.setVisible(false)
 
     push:setupScreen(constants.VIRTUAL_WIDTH, constants.VIRTUAL_HEIGHT, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT, {
-        fullscreen = false,
         resizable = true,
-        pixelperfect = true
+        pixelperfect = false
     })
+
+    love.window.maximize()
 
     State.BGM = love.audio.newSource("assets/audio/music/intro.ogg", "stream")
     State.BGM:setLooping(true)

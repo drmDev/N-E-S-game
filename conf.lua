@@ -1,5 +1,6 @@
 -- conf.lua
--- TODO: retest fullscreen and more resolutions. verify what vsync will do
+-- TODO: get non-windowed mode working. 
+-- (Current attempts usually make the game impossible to capture.)
 function love.conf(t)
     t.window.title = "N / E / S"
     t.window.fullscreen = false

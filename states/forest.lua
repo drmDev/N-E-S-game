@@ -4,7 +4,7 @@ local forest = {}
 local sti = require("lib.sti")
 local bump = require("lib.bump")
 local wendy = require("entities.wendy")
-local input = require("config") -- 1. Require input config
+local input = require("config")
 
 local map
 local world
@@ -30,7 +30,7 @@ function forest.load()
 end
 
 function forest.update(dt)
-    input:update() -- 2. Update input state each frame!
+    input:update()
     wendy.update(dt)
 end
 

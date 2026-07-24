@@ -83,7 +83,8 @@ function intro.update(dt)
             if wasClosed then
                 isDialogueActive = false
 
-                -- If dismissing the TV tape prompt, transition to forest state!
+                -- TODO: eventually this will become a short cutscene into a level select
+                -- (for now just force load the level I am developing)
                 if isTvDialogue then
                     State.GameState = "forest"
                 end
