@@ -21,7 +21,7 @@ local constants = require("constants")
 local function ensureAssetsLoaded()
     if not love or not love.graphics then return end
     if not boxImg then
-        boxImg = love.graphics.newImage("assets/ui/dialog1.png")
+        boxImg = love.graphics.newImage("assets/ui/hud/dialog_box.png")
         boxImg:setFilter("nearest", "nearest")
     end
     if not font then
@@ -29,7 +29,7 @@ local function ensureAssetsLoaded()
         font:setFilter("nearest", "nearest")
     end
     if not arrowImg then
-        arrowImg = love.graphics.newImage("assets/ui/triangle.png")
+        arrowImg = love.graphics.newImage("assets/ui/hud/dialog_arrow.png")
         arrowImg:setFilter("nearest", "nearest")
     end
 end

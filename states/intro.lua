@@ -25,14 +25,14 @@ local charY = 0
 local SCALE = 1.5
 
 function intro.load()
-    mainCharLyingDown = love.graphics.newImage("assets/pngs/mainChar/lying_down.png")
+    mainCharLyingDown = love.graphics.newImage("assets/sprites/characters/player/lying_down.png")
     mainCharLyingDown:setFilter("nearest", "nearest")
 
     local grid = anim8.newGrid(21, 16, mainCharLyingDown:getWidth(), mainCharLyingDown:getHeight())
     charAnim = anim8.newAnimation(grid('6-1', 1), 0.50, 'pauseAtEnd')
 
     world = bump.newWorld(16)
-    map = sti("assets/worlds/intro/intro_room.lua", { "bump" })
+    map = sti("assets/worlds/intro_room/intro_room.lua", { "bump" })
     map:bump_init(world)
 
     if map.layers["Collidable"] then
@@ -48,7 +48,7 @@ function intro.load()
         end
     end
 
-    uiSheet = love.graphics.newImage("assets/ui/greenBtns.png")
+    uiSheet = love.graphics.newImage("assets/ui/hud/action_prompt.png")
     uiSheet:setFilter("nearest", "nearest")
 
     local buttonGrid = anim8.newGrid(20, 16, uiSheet:getWidth(), uiSheet:getHeight())

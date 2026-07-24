@@ -4,9 +4,9 @@ local constants = require("constants")
 local currentTitleSelection = 1
 
 local titleButtons = {
-    { name = "play",  path = "assets/ui/playBtn.png",  scale = 2 },
-    { name = "gear",  path = "assets/ui/gearBtn.png",  scale = 2 },
-    { name = "eject", path = "assets/ui/ejectBtn.png", scale = 2 }
+    { name = "play",  path = "assets/ui/menu/play_btn.png",  scale = 2 },
+    { name = "gear",  path = "assets/ui/menu/gear_btn.png",  scale = 2 },
+    { name = "eject", path = "assets/ui/menu/eject_btn.png", scale = 2 }
 }
 
 function title.load()

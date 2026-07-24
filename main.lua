@@ -35,7 +35,7 @@ function love.load()
     State.BGM = love.audio.newSource("assets/audio/music/intro.ogg", "stream")
     State.BGM:setLooping(true)
     State.BGM:setVolume(0.5)
-    -- State.BGM:play() -- disable while I'm frequently debugging
+    State.BGM:play() -- disable while I'm frequently debugging
 
     State.SFX_Select = love.audio.newSource("assets/audio/sfx/select.wav", "static")
     State.SFX_Select:setVolume(0.5)

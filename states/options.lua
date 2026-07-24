@@ -38,7 +38,7 @@ local PAD_MAP = {
     a       = "confirm", start = "confirm", x = "confirm"
 }
 
-local rewindBtn = { path = "assets/ui/btnRewind.png", scale = LAYOUT.REWIND_SCALE }
+local rewindBtn = { path = "assets/ui/menu/btn_rewind.png", scale = LAYOUT.REWIND_SCALE }
 
 function options.getNewSelection(current, totalItems, direction)
     if direction == "up" then

@@ -19,10 +19,10 @@ local input = baton.new({
 })
 
 input.metadata = {
-    { id = "up",     label = "Up",      type = "icon", path = "assets/ui/dpadUp.png" },
-    { id = "down",   label = "Down",    type = "icon", path = "assets/ui/dpadDown.png" },
-    { id = "left",   label = "Left",    type = "icon", path = "assets/ui/dpadLeft.png" },
-    { id = "right",  label = "Right",   type = "icon", path = "assets/ui/dpadRight.png" },
+    { id = "up",     label = "Up",      type = "icon", path = "assets/ui/icons/dpad_up.png" },
+    { id = "down",   label = "Down",    type = "icon", path = "assets/ui/icons/dpad_down.png" },
+    { id = "left",   label = "Left",    type = "icon", path = "assets/ui/icons/dpad_left.png" },
+    { id = "right",  label = "Right",   type = "icon", path = "assets/ui/icons/dpad_right.png" },
     { id = "action", label = "[Action]",type = "text" },
     { id = "jump",   label = "[Jump]",  type = "text" }
 }

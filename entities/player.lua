@@ -31,15 +31,15 @@ function player.load(startX, startY, world)
         return anim8.newAnimation(grid('1-6', 1), speed), img
     end
 
-    player.anims.idle_down,  player.imgs.idle_down  = loadAnim("assets/pngs/mainChar/idle_down.png", 13, 16, 0.2)
-    player.anims.idle_up,    player.imgs.idle_up    = loadAnim("assets/pngs/mainChar/idle_up.png", 11, 16, 0.2)
-    player.anims.idle_right, player.imgs.idle_right = loadAnim("assets/pngs/mainChar/idle_right.png", 12, 16, 0.2)
-    player.anims.idle_left,  player.imgs.idle_left  = loadAnim("assets/pngs/mainChar/idle_left.png", 12, 16, 0.2)
+    player.anims.idle_down,  player.imgs.idle_down  = loadAnim("assets/sprites/characters/player/idle_down.png", 13, 16, 0.2)
+    player.anims.idle_up,    player.imgs.idle_up    = loadAnim("assets/sprites/characters/player/idle_up.png", 11, 16, 0.2)
+    player.anims.idle_right, player.imgs.idle_right = loadAnim("assets/sprites/characters/player/idle_right.png", 12, 16, 0.2)
+    player.anims.idle_left,  player.imgs.idle_left  = loadAnim("assets/sprites/characters/player/idle_left.png", 12, 16, 0.2)
 
-    player.anims.run_down,  player.imgs.run_down  = loadAnim("assets/pngs/mainChar/run_down.png", 13, 17, 0.1)
-    player.anims.run_up,    player.imgs.run_up    = loadAnim("assets/pngs/mainChar/run_up.png", 13, 17, 0.1)
-    player.anims.run_right, player.imgs.run_right = loadAnim("assets/pngs/mainChar/run_right.png", 14, 17, 0.1)
-    player.anims.run_left,  player.imgs.run_left  = loadAnim("assets/pngs/mainChar/run_left.png", 14, 17, 0.1)
+    player.anims.run_down,  player.imgs.run_down  = loadAnim("assets/sprites/characters/player/run_down.png", 13, 17, 0.1)
+    player.anims.run_up,    player.imgs.run_up    = loadAnim("assets/sprites/characters/player/run_up.png", 13, 17, 0.1)
+    player.anims.run_right, player.imgs.run_right = loadAnim("assets/sprites/characters/player/run_right.png", 14, 17, 0.1)
+    player.anims.run_left,  player.imgs.run_left  = loadAnim("assets/sprites/characters/player/run_left.png", 14, 17, 0.1)
 
     player.currentAnim = player.anims.idle_down
     player.currentImg = player.imgs.idle_down

@@ -22,8 +22,7 @@ function wendy.load(startX, startY, world)
         wendy.world:add(wendy, wendy.x, wendy.y, 16 * wendy.scale, 16 * wendy.scale)
     end
 
-    -- TODO: place assets consistently
-    wendy.img = love.graphics.newImage("assets/pngs/forestLevel/wendy.png")
+    wendy.img = love.graphics.newImage("assets/sprites/characters/wendy/wendy.png")
     wendy.img:setFilter("nearest", "nearest")
 
     -- 64x112 image means 16x16 frames
