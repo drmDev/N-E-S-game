@@ -1,93 +1,59 @@
 -- main.lua
-State = {
-    GameState = "title",
-    CurrentOptionsSelection = 1,
-    RF_Font = nil,
-    BGM = nil,
-    SFX_Select = nil,
-    SFX_Nav = nil
-}
-
-local rfFontPath = "assets/fonts/RasterForgeRegular-JpBgm.ttf"
-local titleScreen = require("states.title")
-local optionsScreen = require ("states.options")
-local introScreen = require("states.intro")
-local forestScreen = require("states.forest")
+local Gamestate = require("lib.hump.gamestate")
 local constants = require("constants")
+local game      = require("game")
 
--- Create virtual low-res canvas (640x360)
-local gameCanvas = love.graphics.newCanvas(constants.VIRTUAL_WIDTH, constants.VIRTUAL_HEIGHT)
-gameCanvas:setFilter("nearest", "nearest")
+local Title = require("states.title")
 
-local states = {
-    title = titleScreen,
-    options = optionsScreen,
-    intro = introScreen,
-    forest = forestScreen
-}
+-- 640x360 virtual canvas for pixel-perfect rendering
+local canvas = love.graphics.newCanvas(constants.VIRTUAL_WIDTH, constants.VIRTUAL_HEIGHT)
+canvas:setFilter("nearest", "nearest")
 
 function love.load()
     love.mouse.setVisible(false)
     love.window.maximize()
-
-    State.BGM = love.audio.newSource("assets/audio/music/intro.ogg", "stream")
-    State.BGM:setLooping(true)
-    State.BGM:setVolume(0.5)
-    State.BGM:play() -- disable while I'm frequently debugging
-
-    State.SFX_Select = love.audio.newSource("assets/audio/sfx/select.wav", "static")
-    State.SFX_Select:setVolume(0.5)
-    State.SFX_Nav = love.audio.newSource("assets/audio/sfx/nav.ogg", "static")
-    State.SFX_Nav:setVolume(0.5)
-
-    State.RF_Font = love.graphics.newFont(rfFontPath, 100)
-    State.RF_Font:setFilter("nearest", "nearest")
-    love.graphics.setFont(State.RF_Font)
     love.graphics.setDefaultFilter("nearest", "nearest")
 
-    titleScreen.load()
-    optionsScreen.load()
-    introScreen.load()
-    forestScreen.load()
-end
+    game.font = love.graphics.newFont("assets/fonts/RasterForgeRegular-JpBgm.ttf", 100)
+    game.font:setFilter("nearest", "nearest")
+    love.graphics.setFont(game.font)
 
-local function dispatch(eventName, ...)
-    local currentState = states[State.GameState]
-    if currentState and currentState[eventName] then
-        currentState[eventName](...)
-    end
+    game.audio.bgm = love.audio.newSource("assets/audio/music/intro.ogg", "stream")
+    game.audio.bgm:setLooping(true)
+    game.audio.bgm:setVolume(0.5)
+    game.audio.bgm:play()
+
+    game.audio.sfxSelect = love.audio.newSource("assets/audio/sfx/select.wav", "static")
+    game.audio.sfxSelect:setVolume(0.5)
+    game.audio.sfxNav = love.audio.newSource("assets/audio/sfx/nav.ogg", "static")
+    game.audio.sfxNav:setVolume(0.5)
+
+    Gamestate.switch(Title)
 end
 
 function love.update(dt)
-    dispatch("update", dt)
+    Gamestate.update(dt)
 end
 
 function love.draw()
-    love.graphics.setCanvas(gameCanvas)
+    love.graphics.setCanvas(canvas)
     love.graphics.clear(0, 0, 0)
-    dispatch("draw")
-    love.graphics.setCanvas() -- Reset target back to main screen
+    Gamestate.draw()
+    love.graphics.setCanvas()
 
-    -- 2. Scale and letterbox gameCanvas to physical window
-    local windowW, windowH = love.graphics.getWidth(), love.graphics.getHeight()
-    local scale = math.min(windowW / constants.VIRTUAL_WIDTH, windowH / constants.VIRTUAL_HEIGHT)
+    local ww, wh = love.graphics.getDimensions()
+    local scale  = math.min(ww / constants.VIRTUAL_WIDTH, wh / constants.VIRTUAL_HEIGHT)
+    local ox     = math.floor((ww - constants.VIRTUAL_WIDTH  * scale) / 2)
+    local oy     = math.floor((wh - constants.VIRTUAL_HEIGHT * scale) / 2)
 
-    local offsetX = math.floor((windowW - (constants.VIRTUAL_WIDTH * scale)) / 2)
-    local offsetY = math.floor((windowH - (constants.VIRTUAL_HEIGHT * scale)) / 2)
-
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(gameCanvas, offsetX, offsetY, 0, scale, scale)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(canvas, ox, oy, 0, scale, scale)
 end
 
-function love.keypressed(key)
-    if key == "q" and State.GameState ~= "options" then
-        love.event.quit()
-        return
-    end
-
-    dispatch("keypressed", key)
+function love.keypressed(key, scancode)
+    Gamestate.keypressed(key, scancode)
 end
 
-function love.gamepadpressed(joystick, button)
-    dispatch("gamepadpressed", joystick, button)
+function love.gamepadpressed(js, btn)
+    Gamestate.gamepadpressed(js, btn)
 end

@@ -1,107 +1,106 @@
 -- states/intro.lua
-local intro = {}
-local anim8 = require("lib.anim8")
+local Gamestate = require("lib.hump.gamestate")
+local anim8     = require("lib.anim8")
+local sti       = require("lib.sti")
+local bump      = require("lib.bump")
+local Player    = require("entities.player")
+local input     = require("config")
 local constants = require("constants")
-local sti = require("lib.sti")
-local bump = require("lib.bump")
-local player = require("entities.player")
-local input = require("config")
 
-local mainCharLyingDown
-local charAnim
-local map
-local world
-local isLyingDown = true
+local Intro = {}
 
-local uiSheet
-local promptAnim
-local tvObj = nil
+local SCALE          = 1.5
+local TV_PAD         = 12   -- pixel padding around TV AABB for interaction trigger
 
-local charX = 0
-local charY = 0
-local SCALE = 1.5
+-- Assets loaded once across state re-entries
+local lyingImg, promptSheet
 
-function intro.load()
-    mainCharLyingDown = love.graphics.newImage("assets/sprites/characters/player/lying_down.png")
-    mainCharLyingDown:setFilter("nearest", "nearest")
+local map, world, player
+local lyingAnim, promptAnim
+local tvObj, isLyingDown
 
-    local grid = anim8.newGrid(21, 16, mainCharLyingDown:getWidth(), mainCharLyingDown:getHeight())
-    charAnim = anim8.newAnimation(grid('6-1', 1), 0.50, 'pauseAtEnd')
+local function findObject(layer, propType)
+    if not (layer and layer.objects) then return nil end
+    for _, obj in ipairs(layer.objects) do
+        if obj.properties and obj.properties.type == propType then return obj end
+    end
+end
 
+local function nearTv()
+    if not tvObj then return false end
+    return player.x + 16 > tvObj.x - TV_PAD
+       and player.x      < tvObj.x + tvObj.width  + TV_PAD
+       and player.y + 16 > tvObj.y - TV_PAD
+       and player.y      < tvObj.y + tvObj.height  + TV_PAD
+end
+
+function Intro:enter()
+    isLyingDown = true
     world = bump.newWorld(16)
-    map = sti("assets/worlds/intro_room/intro_room.lua", { "bump" })
+    map   = sti("assets/worlds/intro_room/intro_room.lua", { "bump" })
     map:bump_init(world)
 
     if map.layers["Collidable"] then
         map.layers["Collidable"].visible = false
     end
 
-    if map.layers["Collidable"] and map.layers["Collidable"].objects then
-        for _, obj in ipairs(map.layers["Collidable"].objects) do
-            if obj.properties and obj.properties.type == "tv" then
-                tvObj = obj
-                break
-            end
-        end
+    tvObj = findObject(map.layers["Collidable"], "tv")
+
+    -- Load sprite assets once
+    if not lyingImg then
+        lyingImg = love.graphics.newImage("assets/sprites/characters/player/lying_down.png")
+        lyingImg:setFilter("nearest", "nearest")
+    end
+    if not promptSheet then
+        promptSheet = love.graphics.newImage("assets/ui/hud/action_prompt.png")
+        promptSheet:setFilter("nearest", "nearest")
     end
 
-    uiSheet = love.graphics.newImage("assets/ui/hud/action_prompt.png")
-    uiSheet:setFilter("nearest", "nearest")
+    -- Animations are re-created each entry so they start fresh
+    local lg = anim8.newGrid(21, 16, lyingImg:getWidth(), lyingImg:getHeight())
+    lyingAnim = anim8.newAnimation(lg('6-1', 1), 0.50, 'pauseAtEnd')
 
-    local buttonGrid = anim8.newGrid(20, 16, uiSheet:getWidth(), uiSheet:getHeight())
-    promptAnim = anim8.newAnimation(buttonGrid('1-2', 1), 0.4)
+    local pg = anim8.newGrid(20, 16, promptSheet:getWidth(), promptSheet:getHeight())
+    promptAnim = anim8.newAnimation(pg('1-2', 1), 0.4)
 
-    charX = math.floor((constants.VIRTUAL_WIDTH - (21 * SCALE)) / 2)
-    charY = math.floor((constants.VIRTUAL_HEIGHT - (16 * SCALE)) / 2)
-
-    player.load(charX, charY, world)
+    local startX = math.floor((constants.VIRTUAL_WIDTH  - 21 * SCALE) / 2)
+    local startY = math.floor((constants.VIRTUAL_HEIGHT - 16 * SCALE) / 2)
+    player = Player(startX, startY, world)
 end
 
-local function checkTvProximity()
-    if not tvObj then return false end
-
-    local pad = 12
-    return (player.x + 16 > tvObj.x - pad) and
-           (player.x < tvObj.x + tvObj.width + pad) and
-           (player.y + 16 > tvObj.y - pad) and
-           (player.y < tvObj.y + tvObj.height + pad)
-end
-
-function intro.update(dt)
+function Intro:update(dt)
     input:update()
 
     if isLyingDown then
-        charAnim:update(dt)
-        -- Once the rising animation finishes playing, hand movement control to the player
-        if charAnim.status == "paused" then
-            isLyingDown = false
-        end
+        lyingAnim:update(dt)
+        if lyingAnim.status == "paused" then isLyingDown = false end
     else
-        player.update(dt)
+        player:update(dt)
         promptAnim:update(dt)
 
-        -- Directly switch to forest level when pressing action or jump near the TV
-        if checkTvProximity() and (input:pressed("action") or input:pressed("jump")) then
-            State.GameState = "forest"
+        if nearTv() and (input:pressed("action") or input:pressed("jump")) then
+            Gamestate.switch(require("states.forest"))
         end
     end
 end
 
-function intro.draw()
+function Intro:draw()
     map:draw()
+
     if isLyingDown then
-        charAnim:draw(mainCharLyingDown, charX, charY, 0, SCALE, SCALE)
+        local cx = math.floor((constants.VIRTUAL_WIDTH  - 21 * SCALE) / 2)
+        local cy = math.floor((constants.VIRTUAL_HEIGHT - 16 * SCALE) / 2)
+        lyingAnim:draw(lyingImg, cx, cy, 0, SCALE, SCALE)
     else
-        player.draw()
+        player:draw()
 
-        if checkTvProximity() and tvObj then
+        if nearTv() and tvObj then
             local floatY = math.sin(love.timer.getTime() * 5) * 2
-            local promptX = tvObj.x + (tvObj.width / 2) - 10
-            local promptY = tvObj.y - 20 + floatY
-
-            promptAnim:draw(uiSheet, math.floor(promptX), math.floor(promptY))
+            local px = math.floor(tvObj.x + tvObj.width / 2 - 10)
+            local py = math.floor(tvObj.y - 20 + floatY)
+            promptAnim:draw(promptSheet, px, py)
         end
     end
 end
 
-return intro
+return Intro

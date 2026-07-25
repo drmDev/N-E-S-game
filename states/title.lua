@@ -1,117 +1,101 @@
 -- states/title.lua
-local title = {}
+local Gamestate = require("lib.hump.gamestate")
+local game      = require("game")
 local constants = require("constants")
-local currentTitleSelection = 1
 
-local titleButtons = {
-    { name = "play",  path = "assets/ui/menu/play_btn.png",  scale = 2 },
-    { name = "gear",  path = "assets/ui/menu/gear_btn.png",  scale = 2 },
-    { name = "eject", path = "assets/ui/menu/eject_btn.png", scale = 2 }
+local Title = {}
+
+local SCALE   = 2
+local PADDING = 24
+
+local buttons = {
+    { path = "assets/ui/menu/play_btn.png"  },
+    { path = "assets/ui/menu/gear_btn.png"  },
+    { path = "assets/ui/menu/eject_btn.png" },
 }
+local selection = 1
 
-function title.load()
-    titleButtons[1].action = function() -- play
-        State.GameState = "intro"
+function Title:enter()
+    selection = 1
+
+    -- Load images once; positions depend on loaded sizes so always recompute.
+    local totalW = 0
+    for _, btn in ipairs(buttons) do
+        if not btn.img then
+            btn.img = love.graphics.newImage(btn.path)
+        end
+        btn.w    = btn.img:getWidth()  * SCALE
+        btn.h    = btn.img:getHeight() * SCALE
+        totalW   = totalW + btn.w
     end
+    totalW = totalW + PADDING * (#buttons - 1)
 
-    titleButtons[2].action = function() -- gear/options
-        State.GameState = "options"
-        State.CurrentOptionsSelection = 1
-    end
-
-    titleButtons[3].action = function() -- eject/quit
-        love.event.quit()
-    end
-
-    local totalTitleWidth = 0
-    local padding = 24
-
-    for _, btn in ipairs(titleButtons) do
-        btn.img = love.graphics.newImage(btn.path)
-        btn.width = btn.img:getWidth() * btn.scale
-        btn.height = btn.img:getHeight() * btn.scale
-
-        totalTitleWidth = totalTitleWidth + btn.width
-    end
-
-    totalTitleWidth = totalTitleWidth + (padding * (#titleButtons - 1))
-
-    local startX = (constants.VIRTUAL_WIDTH - totalTitleWidth) / 2
-    local startY = constants.VIRTUAL_HEIGHT * 0.55
-
-    for _, btn in ipairs(titleButtons) do
-        btn.x = startX
-        btn.y = startY
-        startX = startX + btn.width + padding
+    local x = (constants.VIRTUAL_WIDTH - totalW) / 2
+    local y = constants.VIRTUAL_HEIGHT * 0.55
+    for _, btn in ipairs(buttons) do
+        btn.x = x
+        btn.y = y
+        x = x + btn.w + PADDING
     end
 end
 
-function title.draw()
+function Title:draw()
     love.graphics.push("all")
     love.graphics.setColor(1, 0, 0)
-    local titleText = "N / E / S"
-    local fontWidth = State.RF_Font:getWidth(titleText)
-    love.graphics.print(titleText, (constants.VIRTUAL_WIDTH - fontWidth) / 2, 80)
+    local text = "N / E / S"
+    local fw = game.font:getWidth(text) * 0.45
+    love.graphics.print(text, (constants.VIRTUAL_WIDTH - fw) / 2, 80, 0, 0.45, 0.45)
     love.graphics.pop()
 
-    -- TODO: refine colors used
-    for i, btn in ipairs(titleButtons) do
+    for i, btn in ipairs(buttons) do
         love.graphics.push("all")
-
-        if i == currentTitleSelection then
-            love.graphics.setColor(1, 0.3, 0.3) -- highlight selected button as reddish-pink
-            love.graphics.rectangle("line", btn.x - 4, btn.y - 4, btn.width + 8, btn.height + 8)
+        if i == selection then
+            love.graphics.setColor(1, 0.3, 0.3)
+            love.graphics.rectangle("line", btn.x - 4, btn.y - 4, btn.w + 8, btn.h + 8)
         else
-            love.graphics.setColor(0.4, 0.4, 0.4) -- dim non-selected buttons
+            love.graphics.setColor(0.4, 0.4, 0.4)
         end
-
-        love.graphics.draw(btn.img, btn.x, btn.y, 0, btn.scale, btn.scale)
+        love.graphics.draw(btn.img, btn.x, btn.y, 0, SCALE, SCALE)
         love.graphics.pop()
     end
 end
 
-local function navigate(direction)
-    if direction == "left" or direction == "right" then
-        State.SFX_Nav:play()
-        currentTitleSelection = title.getNewSelection(currentTitleSelection, #titleButtons, direction)
-
-    elseif direction == "confirm" then
-        State.SFX_Select:play()
-        titleButtons[currentTitleSelection].action()
-    end
-end
-
-function title.getNewSelection(current, totalItems, direction)
-    if direction == "left" then
-        current = current - 1
-        if current < 1 then
-            return totalItems
+local function navigate(dir)
+    if dir == "left" or dir == "right" then
+        game.audio.sfxNav:stop()
+        game.audio.sfxNav:play()
+        if dir == "left" then
+            selection = selection - 1
+            if selection < 1 then selection = #buttons end
+        else
+            selection = selection + 1
+            if selection > #buttons then selection = 1 end
         end
-        return current
-
-    elseif direction == "right" then
-        current = current + 1
-        if current > totalItems then
-            return 1
+    elseif dir == "confirm" then
+        game.audio.sfxSelect:stop()
+        game.audio.sfxSelect:play()
+        if selection == 1 then
+            Gamestate.switch(require("states.intro"))
+        elseif selection == 2 then
+            Gamestate.switch(require("states.options"))
+        elseif selection == 3 then
+            love.event.quit()
         end
-        return current
-    end
-
-    return current
-end
-
-function title.keypressed(key)
-    if key == "left" or key == "a" then navigate("left")
-    elseif key == "right" or key == "d" then navigate("right")
-    elseif key == "return" or key == "kpenter" or key == "space" or key == "z" then navigate("confirm")
     end
 end
 
-function title.gamepadpressed(_, button)
-    if button == "dpleft" then navigate("left")
-    elseif button == "dpright" then navigate("right")
-    elseif button == "a" or button == "start" or button == "x" then navigate("confirm")
+function Title:keypressed(key)
+    if     key == "left"  or key == "a"                        then navigate("left")
+    elseif key == "right" or key == "d"                        then navigate("right")
+    elseif key == "return" or key == "space" or key == "z"     then navigate("confirm")
     end
 end
 
-return title
+function Title:gamepadpressed(_, btn)
+    if     btn == "dpleft"                                     then navigate("left")
+    elseif btn == "dpright"                                    then navigate("right")
+    elseif btn == "a" or btn == "start" or btn == "x"         then navigate("confirm")
+    end
+end
+
+return Title

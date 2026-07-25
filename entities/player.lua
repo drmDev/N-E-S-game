@@ -1,104 +1,52 @@
 -- entities/player.lua
-local anim8 = require("lib.anim8")
-local input = require("config")
+local Entity = require("entities.entity")
+local anim8  = require("lib.anim8")
+local input  = require("config")
 
-local player = {
-    x = 300,
-    y = 180,
-    speed = 100,
-    direction = "down",
-    isMoving = false,
-    scale = 1.5,
-    anims = {},
-    imgs = {},
-    currentAnim = nil,
-    currentImg = nil
+local Player = Entity:extend()
+
+local SCALE = 1.5
+local COL_W = 13 * SCALE
+local COL_H = 16 * SCALE
+
+-- Each animation lives in its own PNG; frame dimensions vary per direction.
+local SPRITE_CONFIG = {
+    idle_down  = { path = "assets/sprites/characters/player/idle_down.png",  fw = 13, fh = 16, speed = 0.2 },
+    idle_up    = { path = "assets/sprites/characters/player/idle_up.png",    fw = 11, fh = 16, speed = 0.2 },
+    idle_right = { path = "assets/sprites/characters/player/idle_right.png", fw = 12, fh = 16, speed = 0.2 },
+    idle_left  = { path = "assets/sprites/characters/player/idle_left.png",  fw = 12, fh = 16, speed = 0.2 },
+    run_down   = { path = "assets/sprites/characters/player/run_down.png",   fw = 13, fh = 17, speed = 0.1 },
+    run_up     = { path = "assets/sprites/characters/player/run_up.png",     fw = 13, fh = 17, speed = 0.1 },
+    run_right  = { path = "assets/sprites/characters/player/run_right.png",  fw = 14, fh = 17, speed = 0.1 },
+    run_left   = { path = "assets/sprites/characters/player/run_left.png",   fw = 14, fh = 17, speed = 0.1 },
 }
 
-function player.load(startX, startY, world)
-    player.x = startX or player.x
-    player.y = startY or player.y
-    player.world = world
+function Player:new(x, y, world)
+    Player.super.new(self, x, y, 100, SCALE)
+    self.anims = {}
+    self.imgs  = {}
 
-    if player.world then
-        player.world:add(player, player.x, player.y, 13 * player.scale, 16 * player.scale)
-    end
-
-    local function loadAnim(path, frameW, frameH, speed)
-        local img = love.graphics.newImage(path)
+    for key, cfg in pairs(SPRITE_CONFIG) do
+        local img = love.graphics.newImage(cfg.path)
         img:setFilter("nearest", "nearest")
-        local grid = anim8.newGrid(frameW, frameH, img:getWidth(), img:getHeight())
-        return anim8.newAnimation(grid('1-6', 1), speed), img
+        local grid = anim8.newGrid(cfg.fw, cfg.fh, img:getWidth(), img:getHeight())
+        self.anims[key] = anim8.newAnimation(grid('1-6', 1), cfg.speed)
+        self.imgs[key]  = img
     end
 
-    player.anims.idle_down,  player.imgs.idle_down  = loadAnim("assets/sprites/characters/player/idle_down.png", 13, 16, 0.2)
-    player.anims.idle_up,    player.imgs.idle_up    = loadAnim("assets/sprites/characters/player/idle_up.png", 11, 16, 0.2)
-    player.anims.idle_right, player.imgs.idle_right = loadAnim("assets/sprites/characters/player/idle_right.png", 12, 16, 0.2)
-    player.anims.idle_left,  player.imgs.idle_left  = loadAnim("assets/sprites/characters/player/idle_left.png", 12, 16, 0.2)
-
-    player.anims.run_down,  player.imgs.run_down  = loadAnim("assets/sprites/characters/player/run_down.png", 13, 17, 0.1)
-    player.anims.run_up,    player.imgs.run_up    = loadAnim("assets/sprites/characters/player/run_up.png", 13, 17, 0.1)
-    player.anims.run_right, player.imgs.run_right = loadAnim("assets/sprites/characters/player/run_right.png", 14, 17, 0.1)
-    player.anims.run_left,  player.imgs.run_left  = loadAnim("assets/sprites/characters/player/run_left.png", 14, 17, 0.1)
-
-    player.currentAnim = player.anims.idle_down
-    player.currentImg = player.imgs.idle_down
+    self.currentAnim = self.anims.idle_down
+    self.currentImg  = self.imgs.idle_down
+    self:addToWorld(world, COL_W, COL_H)
 end
 
-function player.update(dt)
+function Player:update(dt)
     local dx, dy = input:get("move")
+    self:move(dx, dy, dt)
 
-    local targetX = player.x + dx * player.speed * dt
-    local targetY = player.y + dy * player.speed * dt
-
-    if player.world then
-        local actualX, actualY, cols, len = player.world:move(player, targetX, targetY)
-        player.x = actualX
-        player.y = actualY
-    else
-        player.x = targetX
-        player.y = targetY
-    end
-
-    player.isMoving = (dx ~= 0 or dy ~= 0)
-
-    if dx > 0 then
-        player.direction = "right"
-    elseif dx < 0 then
-        player.direction = "left"
-    elseif dy > 0 then
-        player.direction = "down"
-    elseif dy < 0 then
-        player.direction = "up"
-    end
-
-    local state = player.isMoving and "run" or "idle"
-    local animKey = state .. "_" .. player.direction
-
-    player.currentAnim = player.anims[animKey]
-    player.currentImg = player.imgs[animKey]
-
-    if player.currentAnim then
-        player.currentAnim:update(dt)
-    end
+    local key = (self.isMoving and "run" or "idle") .. "_" .. self.direction
+    self.currentAnim = self.anims[key]
+    self.currentImg  = self.imgs[key]
+    if self.currentAnim then self.currentAnim:update(dt) end
 end
 
-function player.draw()
-    love.graphics.push("all")
-    love.graphics.setColor(1, 1, 1, 1)
-
-    if player.currentAnim and player.currentImg then
-        player.currentAnim:draw(
-            player.currentImg,
-            math.floor(player.x),
-            math.floor(player.y),
-            0,
-            player.scale,
-            player.scale
-        )
-    end
-
-    love.graphics.pop()
-end
-
-return player
+return Player

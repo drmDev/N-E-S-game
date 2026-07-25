@@ -1,201 +1,163 @@
 -- states/options.lua
-local options = {}
+local Gamestate = require("lib.hump.gamestate")
+local game      = require("game")
 local constants = require("constants")
-local input = require("config")
+local input     = require("config")
 
-local isRemapping = false
-local TOTAL_ITEMS = #input.metadata + 1
-local BACK_BUTTON_INDEX = TOTAL_ITEMS
+local Options = {}
+
+local TOTAL_ITEMS = #input.metadata + 1  -- bindings + back button
 
 local LAYOUT = {
-    HEADER_Y = 20,
+    HEADER_Y     = 20,
     HEADER_SCALE = 0.45,
-    START_Y = 75,
-    ROW_SPACING = 32,
-    ICON_X = 80,
-    BINDING_X = 240,
-    LABEL_SCALE = 0.20,
-    BIND_SCALE = 0.17,
-    ICON_SCALE = 1.2,
-    REWIND_SCALE = 1.5
+    START_Y      = 75,
+    ROW_SPACING  = 32,
+    ICON_X       = 80,
+    BINDING_X    = 240,
+    LABEL_SCALE  = 0.20,
+    BIND_SCALE   = 0.17,
+    ICON_SCALE   = 1.2,
+    REWIND_SCALE = 1.5,
 }
 
-local KEY_MAP = {
-    escape    = "back",
-    left      = "left",    a = "left",
-    right     = "right",   d = "right",
-    up        = "up",      w = "up",
-    down      = "down",    s = "down",
-    ["return"]= "confirm", kpenter = "confirm", space = "confirm", z = "confirm"
-}
+local selection, isRemapping
+local icons     = {}
+local backBtn   = {}
 
-local PAD_MAP = {
-    back    = "back",
-    dpleft  = "left",
-    dpright = "right",
-    dpup    = "up",
-    dpdown  = "down",
-    a       = "confirm", start = "confirm", x = "confirm"
-}
+function Options:enter()
+    selection   = 1
+    isRemapping = false
 
-local rewindBtn = { path = "assets/ui/menu/btn_rewind.png", scale = LAYOUT.REWIND_SCALE }
-
-function options.getNewSelection(current, totalItems, direction)
-    if direction == "up" then
-        current = current - 1
-        if current < 1 then return totalItems end
-        return current
-    elseif direction == "down" then
-        current = current + 1
-        if current > totalItems then return 1 end
-        return current
-    end
-    return current
-end
-
-local function navigate(direction)
-    if isRemapping then return end
-
-    if direction == "up" or direction == "down" then
-        if State.SFX_Nav then State.SFX_Nav:play() end
-        State.CurrentOptionsSelection = options.getNewSelection(
-            State.CurrentOptionsSelection,
-            TOTAL_ITEMS,
-            direction
-        )
-    elseif direction == "confirm" then
-        if State.SFX_Select then State.SFX_Select:play() end
-        if State.CurrentOptionsSelection == BACK_BUTTON_INDEX then
-            State.GameState = "title"
-        else
-            isRemapping = true
+    -- Load assets once
+    if not backBtn.img then
+        for i, meta in ipairs(input.metadata) do
+            if meta.type == "icon" then
+                icons[i] = love.graphics.newImage(meta.path)
+            end
         end
+        local img    = love.graphics.newImage("assets/ui/menu/btn_rewind.png")
+        backBtn.img  = img
+        backBtn.w    = img:getWidth()  * LAYOUT.REWIND_SCALE
+        backBtn.h    = img:getHeight() * LAYOUT.REWIND_SCALE
+        backBtn.x    = (constants.VIRTUAL_WIDTH - backBtn.w) / 2
     end
 end
 
-function options.load()
-    if not love or not love.graphics then return end -- Safety for unit tests
-
-    for _, meta in ipairs(input.metadata) do
-        if meta.type == "icon" then
-            meta.img = love.graphics.newImage(meta.path)
-        end
-    end
-
-    rewindBtn.img = love.graphics.newImage(rewindBtn.path)
-    rewindBtn.width = rewindBtn.img:getWidth() * rewindBtn.scale
-    rewindBtn.height = rewindBtn.img:getHeight() * rewindBtn.scale
-    rewindBtn.x = (constants.VIRTUAL_WIDTH - rewindBtn.width) / 2
-end
-
--- TODO: refactor to improve readability and reduce manual calculations
-function options.draw()
-    local font = State.RF_Font or love.graphics.getFont()
-
+function Options:draw()
+    -- Header
     love.graphics.push("all")
     love.graphics.setColor(1, 0, 0)
-    local headerText = "OPTIONS"
-    local fontWidth = font:getWidth(headerText) * LAYOUT.HEADER_SCALE
-    love.graphics.print(headerText, (constants.VIRTUAL_WIDTH - fontWidth) / 2, LAYOUT.HEADER_Y, 0, LAYOUT.HEADER_SCALE, LAYOUT.HEADER_SCALE)
+    local hw = game.font:getWidth("OPTIONS") * LAYOUT.HEADER_SCALE
+    love.graphics.print("OPTIONS", (constants.VIRTUAL_WIDTH - hw) / 2, LAYOUT.HEADER_Y, 0, LAYOUT.HEADER_SCALE, LAYOUT.HEADER_SCALE)
     love.graphics.pop()
 
-    local currentY = LAYOUT.START_Y
-
+    local y = LAYOUT.START_Y
     for i, meta in ipairs(input.metadata) do
         love.graphics.push("all")
 
-        -- TODO: refine colors
-        if i == State.CurrentOptionsSelection and not isRemapping then
-            love.graphics.setColor(1, 0.3, 0.3)
-        elseif i == State.CurrentOptionsSelection and isRemapping then
+        if i == selection and isRemapping then
             love.graphics.setColor(1, 1, 0)
+        elseif i == selection then
+            love.graphics.setColor(1, 0.3, 0.3)
         else
             love.graphics.setColor(0.5, 0.5, 0.5)
         end
 
-        if meta.type == "icon" and meta.img then
-            love.graphics.draw(meta.img, LAYOUT.ICON_X, currentY, 0, LAYOUT.ICON_SCALE, LAYOUT.ICON_SCALE)
+        if meta.type == "icon" and icons[i] then
+            love.graphics.draw(icons[i], LAYOUT.ICON_X, y, 0, LAYOUT.ICON_SCALE, LAYOUT.ICON_SCALE)
         else
-            love.graphics.print(meta.label, LAYOUT.ICON_X, currentY, 0, LAYOUT.LABEL_SCALE, LAYOUT.LABEL_SCALE)
+            love.graphics.print(meta.label, LAYOUT.ICON_X, y, 0, LAYOUT.LABEL_SCALE, LAYOUT.LABEL_SCALE)
         end
 
         local keyBind, padBind = "NONE", "NONE"
         local bindings = input.config.controls[meta.id]
-
         if bindings then
-            for _, source in ipairs(bindings) do
-                if source:match("^key:") and keyBind == "NONE" then
-                    keyBind = source:sub(5):upper()
-                elseif source:match("^button:") and padBind == "NONE" then
-                    padBind = source:sub(8):upper()
-                end
+            for _, src in ipairs(bindings) do
+                if src:match("^key:")    and keyBind == "NONE" then keyBind = src:sub(5):upper() end
+                if src:match("^button:") and padBind == "NONE" then padBind = src:sub(8):upper() end
             end
         end
 
-        local bindStr = string.format("Key: %s   |   Pad: %s", keyBind, padBind)
-        if isRemapping and i == State.CurrentOptionsSelection then
-            bindStr = "PRESS ANY INPUT REBIND TARGET..."
-        end
+        local bindStr = ("Key: %s   |   Pad: %s"):format(keyBind, padBind)
+        if isRemapping and i == selection then bindStr = "PRESS ANY INPUT TO REBIND..." end
 
-        love.graphics.print(bindStr, LAYOUT.BINDING_X, currentY + 2, 0, LAYOUT.BIND_SCALE, LAYOUT.BIND_SCALE)
+        love.graphics.print(bindStr, LAYOUT.BINDING_X, y + 2, 0, LAYOUT.BIND_SCALE, LAYOUT.BIND_SCALE)
         love.graphics.pop()
 
-        currentY = currentY + LAYOUT.ROW_SPACING
+        y = y + LAYOUT.ROW_SPACING
     end
 
+    -- Back button
     love.graphics.push("all")
-    local rewindAdjustedY = currentY + 5
-
-    if State.CurrentOptionsSelection == BACK_BUTTON_INDEX then
+    local by = y + 5
+    if selection == TOTAL_ITEMS then
         love.graphics.setColor(1, 0.3, 0.3)
-        love.graphics.rectangle("line", rewindBtn.x - 4, rewindAdjustedY - 4, rewindBtn.width + 8, rewindBtn.height + 8)
+        love.graphics.rectangle("line", backBtn.x - 4, by - 4, backBtn.w + 8, backBtn.h + 8)
     else
         love.graphics.setColor(0.4, 0.4, 0.4)
     end
-
-    if rewindBtn.img then
-        love.graphics.draw(rewindBtn.img, rewindBtn.x, rewindAdjustedY, 0, rewindBtn.scale, rewindBtn.scale)
-    end
+    love.graphics.draw(backBtn.img, backBtn.x, by, 0, LAYOUT.REWIND_SCALE, LAYOUT.REWIND_SCALE)
     love.graphics.pop()
 end
 
-local function handleInput(value, deviceType)
-    if isRemapping then
-        local actionId = input.metadata[State.CurrentOptionsSelection].id
-        local prefix = (deviceType == "key") and "key:" or "button:"
-        local newBindStr = prefix .. value
+local function navigate(dir)
+    if isRemapping then return end
 
-        local currentBinds = input.config.controls[actionId]
-        local updatedBinds = {}
-
-        for _, source in ipairs(currentBinds) do
-            if not source:match("^" .. prefix) then
-                table.insert(updatedBinds, source)
-            end
+    if dir == "up" or dir == "down" then
+        game.audio.sfxNav:stop()
+        game.audio.sfxNav:play()
+        if dir == "up" then
+            selection = selection - 1
+            if selection < 1 then selection = TOTAL_ITEMS end
+        else
+            selection = selection + 1
+            if selection > TOTAL_ITEMS then selection = 1 end
         end
-        table.insert(updatedBinds, newBindStr)
-
-        input.config.controls[actionId] = updatedBinds
-        isRemapping = false
-        return
-    end
-
-    local map = (deviceType == "key") and KEY_MAP or PAD_MAP
-    local action = map[value]
-
-    if action == "back" then
-        State.GameState = "title"
-    elseif action then
-        navigate(action)
+    elseif dir == "confirm" then
+        if selection == TOTAL_ITEMS then
+            game.audio.sfxSelect:stop()
+            game.audio.sfxSelect:play()
+            Gamestate.switch(require("states.title"))
+        else
+            isRemapping = true
+        end
+    elseif dir == "back" then
+        Gamestate.switch(require("states.title"))
     end
 end
 
-function options.keypressed(key)
-    handleInput(key, "key")
+local function rebind(value, deviceType)
+    local meta   = input.metadata[selection]
+    if not meta then return end
+    local prefix = (deviceType == "key") and "key:" or "button:"
+    local current, updated = input.config.controls[meta.id], {}
+    for _, src in ipairs(current) do
+        if not src:match("^" .. prefix) then
+            table.insert(updated, src)
+        end
+    end
+    table.insert(updated, prefix .. value)
+    input.config.controls[meta.id] = updated
+    isRemapping = false
 end
 
-function options.gamepadpressed(_, button)
-    handleInput(button, "pad")
+function Options:keypressed(key)
+    if isRemapping then rebind(key, "key"); return end
+    if     key == "escape"                              then navigate("back")
+    elseif key == "up"    or key == "w"                then navigate("up")
+    elseif key == "down"  or key == "s"                then navigate("down")
+    elseif key == "return" or key == "space" or key == "z" then navigate("confirm")
+    end
 end
 
-return options
+function Options:gamepadpressed(_, btn)
+    if isRemapping then rebind(btn, "pad"); return end
+    if     btn == "back"                               then navigate("back")
+    elseif btn == "dpup"                               then navigate("up")
+    elseif btn == "dpdown"                             then navigate("down")
+    elseif btn == "a" or btn == "start" or btn == "x" then navigate("confirm")
+    end
+end
+
+return Options
