@@ -9,28 +9,26 @@ State = {
 }
 
 local rfFontPath = "assets/fonts/RasterForgeRegular-JpBgm.ttf"
-local optionsScreen = require ("states.options")
 local titleScreen = require("states.title")
-local introScreen = require("states.intro")
-local forestScreen = require("states.forest")
-local push = require("lib.push")
+
+-- local optionsScreen = require ("states.options")
+-- local introScreen = require("states.intro")
+-- local forestScreen = require("states.forest")
 local constants = require("constants")
 
+-- Create virtual low-res canvas (640x360)
+local gameCanvas = love.graphics.newCanvas(constants.VIRTUAL_WIDTH, constants.VIRTUAL_HEIGHT)
+gameCanvas:setFilter("nearest", "nearest")
+
 local states = {
-    title = titleScreen,
-    options = optionsScreen,
-    intro = introScreen,
-    forest = forestScreen
+    title = titleScreen
+    -- options = optionsScreen,
+    -- intro = introScreen,
+    -- forest = forestScreen
 }
 
 function love.load()
     love.mouse.setVisible(false)
-
-    push:setupScreen(constants.VIRTUAL_WIDTH, constants.VIRTUAL_HEIGHT, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT, {
-        resizable = true,
-        pixelperfect = false
-    })
-
     love.window.maximize()
 
     State.BGM = love.audio.newSource("assets/audio/music/intro.ogg", "stream")
@@ -49,9 +47,9 @@ function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
 
     titleScreen.load()
-    optionsScreen.load()
-    introScreen.load()
-    forestScreen.load()
+    -- optionsScreen.load()
+    -- introScreen.load()
+    -- forestScreen.load()
 end
 
 local function dispatch(eventName, ...)
@@ -61,18 +59,25 @@ local function dispatch(eventName, ...)
     end
 end
 
-function love.resize(w, h)
-    push:resize(w, h)
-end
-
 function love.update(dt)
     dispatch("update", dt)
 end
 
 function love.draw()
-    push:start()
+    love.graphics.setCanvas(gameCanvas)
+    love.graphics.clear(0, 0, 0)
     dispatch("draw")
-    push:finish()
+    love.graphics.setCanvas() -- Reset target back to main screen
+
+    -- 2. Scale and letterbox gameCanvas to physical window
+    local windowW, windowH = love.graphics.getWidth(), love.graphics.getHeight()
+    local scale = math.min(windowW / constants.VIRTUAL_WIDTH, windowH / constants.VIRTUAL_HEIGHT)
+
+    local offsetX = math.floor((windowW - (constants.VIRTUAL_WIDTH * scale)) / 2)
+    local offsetY = math.floor((windowH - (constants.VIRTUAL_HEIGHT * scale)) / 2)
+
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(gameCanvas, offsetX, offsetY, 0, scale, scale)
 end
 
 -- TODO: refactor to use Baron
