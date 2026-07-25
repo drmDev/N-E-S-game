@@ -2,19 +2,16 @@
 local intro = {}
 local anim8 = require("lib.anim8")
 local constants = require("constants")
-local Dialogue = require("ui.dialogue")
 local sti = require("lib.sti")
 local bump = require("lib.bump")
 local player = require("entities.player")
 local input = require("config")
 
-local isDialogueActive = true
-local isTvDialogue = false -- Replaces isDemoActive
-
 local mainCharLyingDown
 local charAnim
 local map
 local world
+local isLyingDown = true
 
 local uiSheet
 local promptAnim
@@ -58,7 +55,6 @@ function intro.load()
     charY = math.floor((constants.VIRTUAL_HEIGHT - (16 * SCALE)) / 2)
 
     player.load(charX, charY, world)
-    Dialogue.start("ow... my head... where am I?")
 end
 
 local function checkTvProximity()
@@ -74,54 +70,37 @@ end
 function intro.update(dt)
     input:update()
 
-    if isDialogueActive then
+    if isLyingDown then
         charAnim:update(dt)
-        Dialogue.update(dt)
-
-        if input:pressed("jump") or input:pressed("action") then
-            local wasClosed = Dialogue.advance()
-            if wasClosed then
-                isDialogueActive = false
-
-                -- TODO: eventually this will become a short cutscene into a level select
-                -- (for now just force load the level I am developing)
-                if isTvDialogue then
-                    State.GameState = "forest"
-                end
-            end
+        -- Once the rising animation finishes playing, hand movement control to the player
+        if charAnim.status == "paused" then
+            isLyingDown = false
         end
     else
         player.update(dt)
         promptAnim:update(dt)
 
-        if checkTvProximity() and input:pressed("action") then
-            Dialogue.start("Play Tape: Forest Glitch?")
-            isDialogueActive = true
-            isTvDialogue = true
+        -- Directly switch to forest level when pressing action or jump near the TV
+        if checkTvProximity() and (input:pressed("action") or input:pressed("jump")) then
+            State.GameState = "forest"
         end
     end
 end
 
 function intro.draw()
     map:draw()
-
-    -- Only render lying down sprite during initial opening wake-up dialogue
-    if isDialogueActive and not isTvDialogue then
+    if isLyingDown then
         charAnim:draw(mainCharLyingDown, charX, charY, 0, SCALE, SCALE)
     else
         player.draw()
 
-        if checkTvProximity() and tvObj and not isDialogueActive then
+        if checkTvProximity() and tvObj then
             local floatY = math.sin(love.timer.getTime() * 5) * 2
             local promptX = tvObj.x + (tvObj.width / 2) - 10
             local promptY = tvObj.y - 20 + floatY
 
             promptAnim:draw(uiSheet, math.floor(promptX), math.floor(promptY))
         end
-    end
-
-    if isDialogueActive then
-        Dialogue.drawBanner()
     end
 end
 

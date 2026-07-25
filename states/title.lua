@@ -11,7 +11,7 @@ local titleButtons = {
 
 function title.load()
     titleButtons[1].action = function() -- play
-        -- State.GameState = "intro"
+        State.GameState = "intro"
     end
 
     titleButtons[2].action = function() -- gear/options

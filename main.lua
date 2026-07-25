@@ -10,9 +10,9 @@ State = {
 
 local rfFontPath = "assets/fonts/RasterForgeRegular-JpBgm.ttf"
 local titleScreen = require("states.title")
-    local optionsScreen = require ("states.options")
--- local introScreen = require("states.intro")
--- local forestScreen = require("states.forest")
+local optionsScreen = require ("states.options")
+local introScreen = require("states.intro")
+local forestScreen = require("states.forest")
 local constants = require("constants")
 
 -- Create virtual low-res canvas (640x360)
@@ -21,22 +21,23 @@ gameCanvas:setFilter("nearest", "nearest")
 
 local states = {
     title = titleScreen,
-    options = optionsScreen
-    -- intro = introScreen,
-    -- forest = forestScreen
+    options = optionsScreen,
+    intro = introScreen,
+    forest = forestScreen
 }
 
+-- TODO: confirm is this is needed. No mouse events. No mobile version. No touch screen.
 -- Utility: Translates physical window mouse/touch coords to virtual 640x360 canvas space
-function State.toVirtualCoords(screenX, screenY)
-    local windowW, windowH = love.graphics.getWidth(), love.graphics.getHeight()
-    local scale = math.min(windowW / constants.VIRTUAL_WIDTH, windowH / constants.VIRTUAL_HEIGHT)
-    local offsetX = math.floor((windowW - (constants.VIRTUAL_WIDTH * scale)) / 2)
-    local offsetY = math.floor((windowH - (constants.VIRTUAL_HEIGHT * scale)) / 2)
+--function State.toVirtualCoords(screenX, screenY)
+  --  local windowW, windowH = love.graphics.getWidth(), love.graphics.getHeight()
+    --local scale = math.min(windowW / constants.VIRTUAL_WIDTH, windowH / constants.VIRTUAL_HEIGHT)
+    --local offsetX = math.floor((windowW - (constants.VIRTUAL_WIDTH * scale)) / 2)
+    --local offsetY = math.floor((windowH - (constants.VIRTUAL_HEIGHT * scale)) / 2)
 
-    local vx = (screenX - offsetX) / scale
-    local vy = (screenY - offsetY) / scale
-    return vx, vy
-end
+    --local vx = (screenX - offsetX) / scale
+    --local vy = (screenY - offsetY) / scale
+    --return vx, vy
+--end
 
 function love.load()
     love.mouse.setVisible(false)
@@ -59,8 +60,8 @@ function love.load()
 
     titleScreen.load()
     optionsScreen.load()
-    -- introScreen.load()
-    -- forestScreen.load()
+    introScreen.load()
+    forestScreen.load()
 end
 
 local function dispatch(eventName, ...)
