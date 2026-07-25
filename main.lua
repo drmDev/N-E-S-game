@@ -26,19 +26,6 @@ local states = {
     forest = forestScreen
 }
 
--- TODO: confirm is this is needed. No mouse events. No mobile version. No touch screen.
--- Utility: Translates physical window mouse/touch coords to virtual 640x360 canvas space
---function State.toVirtualCoords(screenX, screenY)
-  --  local windowW, windowH = love.graphics.getWidth(), love.graphics.getHeight()
-    --local scale = math.min(windowW / constants.VIRTUAL_WIDTH, windowH / constants.VIRTUAL_HEIGHT)
-    --local offsetX = math.floor((windowW - (constants.VIRTUAL_WIDTH * scale)) / 2)
-    --local offsetY = math.floor((windowH - (constants.VIRTUAL_HEIGHT * scale)) / 2)
-
-    --local vx = (screenX - offsetX) / scale
-    --local vy = (screenY - offsetY) / scale
-    --return vx, vy
---end
-
 function love.load()
     love.mouse.setVisible(false)
     love.window.maximize()
@@ -92,7 +79,6 @@ function love.draw()
     love.graphics.draw(gameCanvas, offsetX, offsetY, 0, scale, scale)
 end
 
--- TODO: refactor to use Baron
 function love.keypressed(key)
     if key == "q" and State.GameState ~= "options" then
         love.event.quit()
