@@ -15,8 +15,8 @@ function title.load()
     end
 
     titleButtons[2].action = function() -- gear/options
-        -- State.GameState = "options"
-        -- State.CurrentOptionsSelection = 1
+        State.GameState = "options"
+        State.CurrentOptionsSelection = 1
     end
 
     titleButtons[3].action = function() -- eject/quit

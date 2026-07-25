@@ -10,8 +10,7 @@ State = {
 
 local rfFontPath = "assets/fonts/RasterForgeRegular-JpBgm.ttf"
 local titleScreen = require("states.title")
-
--- local optionsScreen = require ("states.options")
+    local optionsScreen = require ("states.options")
 -- local introScreen = require("states.intro")
 -- local forestScreen = require("states.forest")
 local constants = require("constants")
@@ -21,11 +20,23 @@ local gameCanvas = love.graphics.newCanvas(constants.VIRTUAL_WIDTH, constants.VI
 gameCanvas:setFilter("nearest", "nearest")
 
 local states = {
-    title = titleScreen
-    -- options = optionsScreen,
+    title = titleScreen,
+    options = optionsScreen
     -- intro = introScreen,
     -- forest = forestScreen
 }
+
+-- Utility: Translates physical window mouse/touch coords to virtual 640x360 canvas space
+function State.toVirtualCoords(screenX, screenY)
+    local windowW, windowH = love.graphics.getWidth(), love.graphics.getHeight()
+    local scale = math.min(windowW / constants.VIRTUAL_WIDTH, windowH / constants.VIRTUAL_HEIGHT)
+    local offsetX = math.floor((windowW - (constants.VIRTUAL_WIDTH * scale)) / 2)
+    local offsetY = math.floor((windowH - (constants.VIRTUAL_HEIGHT * scale)) / 2)
+
+    local vx = (screenX - offsetX) / scale
+    local vy = (screenY - offsetY) / scale
+    return vx, vy
+end
 
 function love.load()
     love.mouse.setVisible(false)
@@ -47,7 +58,7 @@ function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
 
     titleScreen.load()
-    -- optionsScreen.load()
+    optionsScreen.load()
     -- introScreen.load()
     -- forestScreen.load()
 end
