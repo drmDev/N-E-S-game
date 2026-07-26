@@ -1,11 +1,12 @@
 -- states/intro.lua
-local Gamestate = require("lib.hump.gamestate")
-local anim8     = require("lib.anim8")
-local sti       = require("lib.sti")
-local bump      = require("lib.bump")
-local Player    = require("entities.player")
-local input     = require("config")
-local constants = require("constants")
+local Gamestate     = require("lib.hump.gamestate")
+local anim8         = require("lib.anim8")
+local sti           = require("lib.sti")
+local bump          = require("lib.bump")
+local Player        = require("entities.player")
+local DialogManager = require("dialogs.init")
+local input         = require("config")
+local constants     = require("constants")
 
 local Intro = {}
 
@@ -17,7 +18,7 @@ local lyingImg, promptSheet
 
 local map, world, player
 local lyingAnim, promptAnim
-local tvObj, isLyingDown
+local tvObj, isLyingDown, dialogShown
 
 local function findObject(layer, propType)
     if not (layer and layer.objects) then return nil end
@@ -36,6 +37,7 @@ end
 
 function Intro:enter()
     isLyingDown = true
+    dialogShown = false
     world = bump.newWorld(16)
     map   = sti("assets/worlds/intro_room/intro_room.lua", { "bump" })
     map:bump_init(world)
@@ -56,6 +58,9 @@ function Intro:enter()
         promptSheet:setFilter("nearest", "nearest")
     end
 
+    -- Initialize dialog system
+    DialogManager.init()
+
     -- Animations are re-created each entry so they start fresh
     local lg = anim8.newGrid(21, 16, lyingImg:getWidth(), lyingImg:getHeight())
     lyingAnim = anim8.newAnimation(lg('6-1', 1), 0.50, 'pauseAtEnd')
@@ -70,16 +75,35 @@ end
 
 function Intro:update(dt)
     input:update()
+    
+    -- Update dialog system
+    DialogManager.update(dt)
 
     if isLyingDown then
         lyingAnim:update(dt)
-        if lyingAnim.status == "paused" then isLyingDown = false end
+        if lyingAnim.status == "paused" then
+            isLyingDown = false
+            -- Show wakeup dialog after animation completes
+            if not dialogShown then
+                DialogManager.show("intro.wakeup")
+                dialogShown = true
+            end
+        end
     else
-        player:update(dt)
-        promptAnim:update(dt)
+        -- Handle dialog input
+        if DialogManager.isOpen() then
+            if input:pressed("action") or input:pressed("jump") then
+                DialogManager.onAction()
+            end
+        else
+            -- Only update player and check interactions when dialog is closed
+            player:update(dt)
+            promptAnim:update(dt)
 
-        if nearTv() and (input:pressed("action") or input:pressed("jump")) then
-            Gamestate.switch(require("states.forest"))
+            if nearTv() and (input:pressed("action") or input:pressed("jump")) then
+                -- Show loading dialog, which will transition to forest on completion
+                DialogManager.show("intro.tv_loading")
+            end
         end
     end
 end
@@ -101,6 +125,14 @@ function Intro:draw()
             promptAnim:draw(promptSheet, px, py)
         end
     end
+    
+    -- Draw dialog on top of everything
+    DialogManager.draw()
+end
+
+function Intro:leave()
+    -- Clear any remaining dialogs when leaving the state
+    DialogManager.clear()
 end
 
 return Intro
