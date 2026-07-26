@@ -14,7 +14,7 @@ function love.load()
     love.window.maximize()
     love.graphics.setDefaultFilter("nearest", "nearest")
 
-    game.font = love.graphics.newFont("assets/fonts/RasterForgeRegular-JpBgm.ttf", 100)
+    game.font = love.graphics.newFont("assets/fonts/KindlyRewind-BOon.ttf", 16)
     game.font:setFilter("nearest", "nearest")
     love.graphics.setFont(game.font)
 

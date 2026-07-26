@@ -5,15 +5,15 @@ local Object = require("lib.classic")
 local Entity = Object:extend()
 
 function Entity:new(x, y, speed, scale)
-    self.x         = x     or 0
-    self.y         = y     or 0
-    self.speed     = speed or 100
-    self.scale     = scale or 1.5
-    self.direction = "down"
-    self.isMoving  = false
-    self.world     = nil
-    self.colW      = 0
-    self.colH      = 0
+    self.x           = x     or 0
+    self.y           = y     or 0
+    self.speed       = speed or 100
+    self.scale       = scale or 1.5
+    self.direction   = "down"
+    self.isMoving    = false
+    self.world       = nil
+    self.colW        = 0
+    self.colH        = 0
     self.currentAnim = nil
     self.currentImg  = nil  -- per-animation image (Player uses this)
     self.img         = nil  -- single shared spritesheet (Wendy uses this)

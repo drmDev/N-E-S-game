@@ -10,18 +10,18 @@ local DialogManager = {
 -- Initialize dialog system (call once per state or globally)
 function DialogManager.init()
     if DialogManager.initialized then return end
-    
+
     -- Create dialog font
     DialogManager.font = love.graphics.newFont("assets/fonts/RasterForgeRegular-JpBgm.ttf", 16)
     DialogManager.font:setFilter("nearest", "nearest")
-    
+
     -- Configure Talkies globally
     Talkies.font = DialogManager.font
     Talkies.textSpeed = "medium"
     Talkies.messageColor = {1, 1, 1}
     Talkies.messageBackgroundColor = {0, 0, 0, 0.8}
     Talkies.padding = 10
-    
+
     DialogManager.initialized = true
 end
 
@@ -32,13 +32,13 @@ function DialogManager.show(dialogId, context)
         print("Warning: Dialog not found: " .. dialogId)
         return
     end
-    
+
     -- Support for dynamic text (context substitution)
     local text = dialog.text
     if type(text) == "function" then
         text = text(context)
     end
-    
+
     -- Show the dialog
     Talkies.say(dialog.speaker, text, dialog.config or {})
 end
@@ -51,14 +51,14 @@ function DialogManager.get(dialogId)
         print("Warning: Invalid dialog ID format: " .. dialogId)
         return nil 
     end
-    
+
     -- Load the dialog module
     local success, dialogModule = pcall(require, "dialogs." .. module)
     if not success then
         print("Warning: Could not load dialog module: dialogs." .. module)
         return nil
     end
-    
+
     return dialogModule[key]
 end
 

@@ -1,11 +1,10 @@
--- Shared game context. Required by states for audio/font access.
--- Populated in love.load() before first state switch.
+-- game.lua
 local game = {
-    font  = nil,
+    font  = nil,  ---@type love.Font
     audio = {
-        bgm       = nil,
-        sfxSelect = nil,
-        sfxNav    = nil,
+        bgm       = nil,  ---@type love.Source
+        sfxSelect = nil,  ---@type love.Source
+        sfxNav    = nil,  ---@type love.Source
     },
 }
 return game

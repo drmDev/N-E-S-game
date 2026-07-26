@@ -7,10 +7,10 @@ return {
         speaker = "",  -- No speaker name for internal monologue
         text = "Ow... my head... Where am I?"
     },
-    
+
     -- Dialog shown when interacting with the TV
     tv_loading = {
-        speaker = "System",
+        speaker = "TV",
         text = "Loading level - Forest",
         config = {
             oncomplete = function()

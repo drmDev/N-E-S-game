@@ -3,6 +3,9 @@ local Gamestate = require("lib.hump.gamestate")
 local game      = require("game")
 local constants = require("constants")
 
+local titleFont = love.graphics.newFont("assets/fonts/RasterForgeRegular-JpBgm.ttf", 100)
+titleFont:setFilter("nearest", "nearest")
+
 local Title = {}
 
 local SCALE   = 2
@@ -42,8 +45,9 @@ end
 function Title:draw()
     love.graphics.push("all")
     love.graphics.setColor(1, 0, 0)
+    love.graphics.setFont(titleFont)
     local text = "N / E / S"
-    local fw = game.font:getWidth(text) * 0.45
+    local fw = titleFont:getWidth(text) * 0.45
     love.graphics.print(text, (constants.VIRTUAL_WIDTH - fw) / 2, 80, 0, 0.45, 0.45)
     love.graphics.pop()
 
@@ -94,7 +98,7 @@ end
 function Title:gamepadpressed(_, btn)
     if     btn == "dpleft"                                     then navigate("left")
     elseif btn == "dpright"                                    then navigate("right")
-    elseif btn == "a" or btn == "start" or btn == "x"         then navigate("confirm")
+    elseif btn == "a" or btn == "start" or btn == "x"          then navigate("confirm")
     end
 end
 
