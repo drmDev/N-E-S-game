@@ -51,6 +51,12 @@ function love.draw()
 end
 
 function love.keypressed(key, scancode)
+    -- Global quit: CTRL+Q
+    if key == "q" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
+        love.event.quit()
+        return
+    end
+    
     Gamestate.keypressed(key, scancode)
 end
 
