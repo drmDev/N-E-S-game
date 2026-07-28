@@ -7,12 +7,10 @@ local constants = require("constants")
 local Wendy = Entity:extend()
 
 local SCALE = 1.5
-local COL_W = 16 * SCALE
-local COL_H = 16 * SCALE
 
 -- Single 64x112 spritesheet: 4 cols (down/up/left/right), 7 rows of frames.
 -- Rows 1-4 = walk cycle.
-function Wendy:new(x, y, world)
+function Wendy:new(x, y)
 	Wendy.super.new(self, x, y, 100, SCALE)
 
 	self.img = love.graphics.newImage("assets/sprites/characters/wendy/wendy.png")
@@ -30,7 +28,6 @@ function Wendy:new(x, y, world)
 		run_right = anim8.newAnimation(grid(4, "1-4"), 0.15),
 	}
 	self.currentAnim = self.anims.run_right
-	self:addToWorld(world, COL_W, COL_H)
 
 	self.isJumping = false
 	self.velocityY = 0
@@ -64,8 +61,13 @@ function Wendy:update(dt)
 
 	-- 3. Free vertical movement (only when NOT jumping)
 	if not self.isJumping then
-		local _, dy = input:get("move") -- discard dx, only use dy
+		local _, dy = input:get("move")
 		self.y = self.y + dy * self.moveSpeed * dt
+
+		-- Clamp free movement to middle third of screen
+		local thirdH = constants.VIRTUAL_HEIGHT / 3
+		local halfH = 16 * self.scale / 2
+		self.y = math.max(thirdH + halfH, math.min(thirdH * 2 - halfH, self.y))
 	end
 
 	-- 4. Jump input via baton
@@ -75,7 +77,7 @@ function Wendy:update(dt)
 		self.isJumping = true
 	end
 
-	-- 5. Clamp Y to screen bounds
+	-- 5. Full-screen clamp (prevents jump from going off-screen)
 	local halfH = 16 * self.scale / 2
 	self.y = math.max(halfH, math.min(constants.VIRTUAL_HEIGHT - halfH, self.y))
 end

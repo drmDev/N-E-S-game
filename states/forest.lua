@@ -1,6 +1,5 @@
 -- states/forest.lua
 local sti = require("lib.sti")
-local bump = require("lib.bump")
 local Wendy = require("entities.wendy")
 local input = require("config")
 local game = require("game")
@@ -8,7 +7,7 @@ local constants = require("constants")
 
 local Forest = {}
 
-local map, world, wendy
+local map, wendy
 
 local function findObject(layer, propType)
 	if not (layer and layer.objects) then
@@ -38,9 +37,8 @@ function Forest:enter()
 	self.obstacleSpeed = 450 -- pixels/sec the obstacles scroll left
 	self.hitDisplayTimer = 0 -- for showing HIT text
 	self.hitFont = love.graphics.newFont(24) -- cache font for HIT text
-	world = bump.newWorld(16)
 	map = sti("assets/worlds/forest_glitch/forest.lua", { "bump" })
-	map:bump_init(world)
+
 	-- Force nearest filtering on all map tilesets
 	for _, tileset in ipairs(map.tilesets) do
 		tileset.image:setFilter("nearest", "nearest")
@@ -52,7 +50,7 @@ function Forest:enter()
 		spawnX, spawnY = spawn.x, spawn.y
 	end
 
-	wendy = Wendy(spawnX, spawnY, world)
+	wendy = Wendy(spawnX, spawnY)
 	changeTune()
 end
 
@@ -63,10 +61,11 @@ function Forest:update(dt)
 	-- 1. Spawn obstacles
 	self.spawnTimer = self.spawnTimer + dt
 	if self.spawnTimer >= self.spawnInterval then
-		self.spawnTimer = 0
+		self.spawnTimer = -love.math.random() * self.spawnInterval * 0.8 -- randomize initial spawn time to avoid immediate obstacle appearance
 		local x = constants.VIRTUAL_WIDTH
-		local minY = 30
-		local maxY = constants.VIRTUAL_HEIGHT - 30
+		local thirdH = constants.VIRTUAL_HEIGHT / 3
+		local minY = thirdH
+		local maxY = thirdH * 2
 		local y = love.math.random(minY, maxY)
 		table.insert(self.obstacles, { x = x, y = y })
 	end
